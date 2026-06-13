@@ -669,20 +669,21 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
 
     inj_map = (injuries or {}).get("by_team", {}) if isinstance(injuries, dict) else {}
 
-    fixtures_out = []
-    for fx in fixtures.to_dict("records"):
+    def enrich(fx):
+        """Full per-match record: probabilities, drivers + narrative, derived
+        markets, live-odds comparison and best plays — everything the
+        click-through detail view needs for one match."""
         H, A = fx["home"], fx["away"]
         mkt = fmkt.get((H, A))
         meta = match_factors(fx, values, form(H), form(A), mkt,
                              h2h=head_to_head(df, H, A, asof),
                              inj_h=inj_map.get(H), inj_a=inj_map.get(A))
         ocmp = odds_compare({**fx}, live_map.get((H, A)))
-        fixtures_out.append({
+        return {
             "n": fx.get("n"), "date": fx["date"],
             "kickoff": fx.get("kickoff") if isinstance(fx.get("kickoff"), str) else None,
-            "group": fx.get("group"),
-            "stage": fx.get("stage"), "home": H, "away": A,
-            "flagH": flag(H), "flagA": flag(A),
+            "group": fx.get("group"), "stage": fx.get("stage"), "status": fx.get("status"),
+            "home": H, "away": A, "flagH": flag(H), "flagA": flag(A),
             "p_home": fx["p_home"], "p_draw": fx["p_draw"], "p_away": fx["p_away"],
             "lambda_h": fx["lambda_h"], "lambda_a": fx["lambda_a"],
             "elo_h": round(float(fx["elo_h"])), "elo_a": round(float(fx["elo_a"])),
@@ -698,7 +699,20 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             "score_breakdown": _score_breakdown(fx.get("markets")),
             "referee": (referees or {}).get("by_match", {}).get(f"{H}|{A}"),
             "climate": fx.get("climate"), "venue_city": fx.get("venue_city"),
-        })
+        }
+
+    fixtures_out = [enrich(fx) for fx in fixtures.to_dict("records")]
+    # rich detail for EVERY OTHER known-team match (not just the next 7 days),
+    # so the click-through detail view works for any group fixture; the upcoming
+    # set already lives in fixtures_out, so we only add the rest here.
+    upcoming_ns = {fo["n"] for fo in fixtures_out}
+    match_details = {}
+    if all_fixtures is not None:
+        for fx in all_fixtures.to_dict("records"):
+            n = fx.get("n")
+            if (fx.get("home") in FLAGS and fx.get("away") in FLAGS
+                    and n not in upcoming_ns and n not in match_details):
+                match_details[n] = enrich(fx)
 
     # best picks — model's most confident calls, ranked by max outcome prob
     best_picks = []
@@ -711,6 +725,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         topcs = (sb.get("by_result") or {}).get(key) or (sb.get("top") or [{}])[0]
         edges = [r["edge"] for r in fo.get("odds_compare", [])]
         best_picks.append({
+            "n": fo.get("n"),
             "date": fo["date"], "home": fo["home"], "away": fo["away"], "stage": fo["stage"],
             "group": fo.get("group"), "flagH": fo["flagH"], "flagA": fo["flagA"],
             "pick": sel, "pick_p": probs[sel], "p_home": fo["p_home"], "p_draw": fo["p_draw"],
@@ -768,6 +783,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "groups": groups_out,
         "standings": standings,
         "fixtures": fixtures_out,
+        "match_details": match_details,
         "live": live_out,
         "live_scoreboard": live_scoreboard(live),
         "bracket": bracket,

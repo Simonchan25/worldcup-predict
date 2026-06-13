@@ -78,7 +78,7 @@
     const injLine = (t, fl) => { const it = INJ[t]; if (!it || !it.length) return "";
       return `<div class="inj"><span class="ic">🩹</span><span>${fl} ${esc(t)}：${it.slice(0, 3).map(x => esc(x.player) + (x.status && x.status !== "out" ? `(${esc(x.status)})` : "")).join("、")}${it.length > 3 ? " 等" : ""}</span></div>`; };
     const badge = fx.stage === "group" ? "组 " + fx.group : String(fx.stage).toUpperCase();
-    return `<div class="mc">
+    return `<div class="mc clickable" data-match-n="${fx.n}">
       <div class="mc-head"><span class="badge">${esc(badge)}</span><span class="mc-date">${fx.kickoff ? "🕒 " + esc(koTime(fx.kickoff)) : esc(fx.date)}</span></div>
       <div class="mc-teams">
         <div class="mc-team home"><span class="fn">${fx.flagH} ${esc(fx.home)}</span><span class="elo">Elo ${fx.elo_h} ${formDots(fx.form_h)}</span></div>
@@ -127,7 +127,7 @@
       return `<tr><td class="l tm"><span class="rkn">${i + 1}</span>${t.flag} ${esc(t.team)}</td><td><b>${pct(t.p_champion)}</b></td><td>${tr}</td></tr>`; }).join("") + `</tbody>`;
     $("#recent-matches").innerHTML = upcoming().slice(0, 5).map(fx => {
       const w = fx.p_home >= fx.p_away ? [fx.home, fx.p_home] : [fx.away, fx.p_away];
-      return `<div class="rmatch"><span class="rm-d">${esc(fx.date.slice(5))}</span><span class="rm-t">${fx.flagH} ${esc(fx.home)} <span class="dim">${sc((fx.top_scores[0] || {}).score)}</span> ${esc(fx.away)} ${fx.flagA}</span><span class="rm-r">${esc(w[0])} ${pct(w[1], 0)}</span></div>`; }).join("");
+      return `<div class="rmatch clickable" data-match-n="${fx.n}"><span class="rm-d">${esc(fx.date.slice(5))}</span><span class="rm-t">${fx.flagH} ${esc(fx.home)} <span class="dim">${sc((fx.top_scores[0] || {}).score)}</span> ${esc(fx.away)} ${fx.flagA}</span><span class="rm-r">${esc(w[0])} ${pct(w[1], 0)}</span></div>`; }).join("");
   }
   function drawDonut(el, top) {
     const others = Math.max(0, 1 - top.reduce((s, t) => s + t.p_champion, 0));
@@ -165,7 +165,7 @@
     if (!s || !s.n) return "";
     const cards = rows.map(r => {
       const beat = r.rps < r.rps_uniform;
-      return `<div class="lc"><div class="lc-teams">${r.flagH} ${esc(r.home)} <span class="lc-score">${esc(r.actual)}</span> ${esc(r.away)} ${r.flagA}</div>
+      return `<div class="lc clickable" data-match-n="${r.n}"><div class="lc-teams">${r.flagH} ${esc(r.home)} <span class="lc-score">${esc(r.actual)}</span> ${esc(r.away)} ${r.flagA}</div>
         <div class="lc-pred">赛前 胜 ${pct(r.p_home, 0)} / 平 ${pct(r.p_draw, 0)} / 负 ${pct(r.p_away, 0)}</div>
         <div class="lc-pred">模型预测比分 <b>${esc(sc(r.pred_score))}</b> · 方向 <span class="${r.fav_hit ? "hit-y" : "hit-n"}">${r.fav_hit ? "✓" : "✗"}</span> · 比分 <span class="${r.score_hit ? "hit-y" : "hit-n"}">${r.score_hit ? "✓ 中" : "✗"}</span></div>
         <div style="margin-top:8px"><span class="lc-rps ${beat ? "rps-good" : "rps-bad"}">RPS ${r.rps.toFixed(3)} ${beat ? "↓优于基线" : "↑差于基线"}</span></div></div>`;
@@ -200,13 +200,14 @@
           tag = m.pred ? `<span class="s-result ${m.pred_hit ? "s-hit" : "s-miss"}">${m.pred_hit ? "✓ 预测命中" : "✗ 预测 " + sc(m.pred.score)}</span>` : `<span class="s-result s-up">已赛</span>`;
         } else if (m.pred) {
           mid = `<span class="s-mid pred">${sc(m.pred.score)}</span>`;
-          const w = { home: m.home, draw: "平", away: m.away }[m.pred.pick];
-          tag = `<span class="s-result s-up">${esc(w)} ${pct(m.pred.pick_p, 0)}</span>`;
+          const w = m.pred.pick === "draw" ? "平局" : (m.pred.pick === "home" ? m.home : m.away) + " 胜";
+          tag = `<span class="s-result s-up" title="模型预测该结果的概率">预测 ${esc(w)} ${pct(m.pred.pick_p, 0)}</span>`;
         } else { mid = `<span class="s-mid pred s-tbd">待定</span>`; tag = `<span class="s-result s-up">未定队</span>`; }
         const hn = m.ko_slot ? `<span class="s-tbd">${esc(m.home)}</span>` : `${m.flagH} ${esc(m.home)}`;
         const an = m.ko_slot ? `<span class="s-tbd">${esc(m.away)}</span>` : `${esc(m.away)} ${m.flagA}`;
         const predTag = (m.actual && m.pred) ? `赛前 ${pct({ home: m.pred.p_home, draw: m.pred.p_draw, away: m.pred.p_away }[m.pred.pick], 0)}` : "";
-        return `<div class="srow"><div class="s-meta">${esc(stage)}${m.kickoff ? `<br><b class="s-ko">🕒 ${esc(koTime(m.kickoff))}</b>` : ""}<br>${esc(m.venue || "")}</div>
+        const clk = m.ko_slot ? "" : ` data-match-n="${m.n}"`;
+        return `<div class="srow${m.ko_slot ? "" : " clickable"}"${clk}><div class="s-meta">${esc(stage)}${m.kickoff ? `<br><b class="s-ko">🕒 ${esc(koTime(m.kickoff))}</b>` : ""}<br>${esc(m.venue || "")}</div>
           <div class="s-teams"><span class="s-h">${hn}</span>${mid}<span class="s-a">${an}</span></div>
           <div class="s-pred-tag">${predTag}</div><div>${tag}</div></div>`;
       }).join("");
@@ -287,7 +288,7 @@
     const cards = (D.best_picks || []).map(p => {
       const lbl = { 主胜: p.home + " 胜", 平局: "平局", 客胜: p.away + " 胜" }[p.pick];
       const edge = p.best_edge, ep = edge == null ? "" : `<span class="pick-edge ${edge > 0.03 ? "edge-pos" : "edge-neg"}">最优盘口 EV ${edge > 0 ? "+" : ""}${(100 * edge).toFixed(0)}%</span>`;
-      return `<div class="pick"><div class="conf" style="width:${100 * p.pick_p}%"></div>
+      return `<div class="pick clickable"${p.n != null ? ` data-match-n="${p.n}"` : ""}><div class="conf" style="width:${100 * p.pick_p}%"></div>
         <div class="pick-top"><span class="pick-match">${p.flagH} ${esc(p.home)} <span class="dim">vs</span> ${esc(p.away)} ${p.flagA}</span><span class="pick-call">${esc(lbl)} ${pct(p.pick_p, 0)}</span></div>
         <div class="pick-meta"><span>预测比分 <b>${sc(p.score)}</b></span><span>预期 <b>${p.lambda_h.toFixed(1)}–${p.lambda_a.toFixed(1)}</b></span>${ep}</div>
         <div class="pick-an">${bold(p.narrative)}</div></div>`;
@@ -412,6 +413,23 @@
     $("#cal-svg").innerHTML = `<line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="#3a4150" stroke-dasharray="4 4"/><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#2a2e37"/><line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#2a2e37"/>${pts}<text x="${W / 2}" y="${H - 4}" fill="#5e6573" font-size="10" text-anchor="middle">模型预测概率 →</text>`;
   }
 
+  /* ---------- match detail modal (click any match) ---------- */
+  const fixturesByN = {}; (D.fixtures || []).forEach(f => { fixturesByN[f.n] = f; });
+  const schedByN = {}; (D.schedule_full || []).forEach(m => { schedByN[m.n] = m; });
+  const detailOf = n => fixturesByN[n] || (D.match_details || {})[n];
+  function openMatch(n) {
+    const fx = detailOf(n); if (!fx) return;
+    const sm = schedByN[n];
+    const actual = sm && sm.actual
+      ? `<div class="mm-actual">本场已结束 · 实际比分 <b>${esc(sm.actual)}</b>${sm.pred_hit != null ? ` · 模型方向 <span class="${sm.pred_hit ? "hit-y" : "hit-n"}">${sm.pred_hit ? "✓ 命中" : "✗ 未中"}</span>` : ""}</div>`
+      : (fx.kickoff ? `<div class="mm-actual dim">开球 🕒 ${esc(koTime(fx.kickoff))}（你所在时区）</div>` : "");
+    $("#mm-body").innerHTML = actual + matchCard(fx)
+      + `<div class="mm-sec">💰 赔率与买入 · 本场最优玩法</div><div class="sb-grid">${betSmartCard(fx)}</div>`;
+    const mod = $("#match-modal"); mod.classList.add("open"); $("#mm-body").scrollTop = 0;
+    document.body.style.overflow = "hidden";
+  }
+  function closeMatch() { $("#match-modal").classList.remove("open"); document.body.style.overflow = ""; }
+
   /* ---------- router ---------- */
   const POST = { home: homePost, matches: matchesPost, bet: betPost, analytics: analyticsPost };
   function setView(id) {
@@ -423,9 +441,17 @@
   function init() {
     chrome();
     $("#main").innerHTML = [homeHTML(), scheduleHTML(), bracketHTML(), matchesHTML(), scoreHTML(), picksHTML(), betHTML(), groupsHTML(), analyticsHTML()].join("");
+    document.body.insertAdjacentHTML("beforeend",
+      `<div id="match-modal" class="mmodal"><div class="mm-back"></div><div class="mm-card"><button class="mm-x" aria-label="关闭">✕</button><div id="mm-body"></div></div></div>`);
     Object.values(POST).forEach(f => { try { f(); } catch (e) { console.error(e); } });
-    document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) location.hash = g.dataset.go; });
-    window.addEventListener("hashchange", () => setView(location.hash.slice(1)));
+    document.addEventListener("click", e => {
+      const g = e.target.closest("[data-go]"); if (g) { location.hash = g.dataset.go; return; }
+      if (e.target.closest(".mm-x, .mm-back")) { closeMatch(); return; }
+      const mn = e.target.closest("[data-match-n]");
+      if (mn && !e.target.closest("button, a, summary, .add-leg, .more")) openMatch(+mn.dataset.matchN);
+    });
+    window.addEventListener("keydown", e => { if (e.key === "Escape") closeMatch(); });
+    window.addEventListener("hashchange", () => { closeMatch(); setView(location.hash.slice(1)); });
     setView(location.hash.slice(1) || "home");
   }
   init();

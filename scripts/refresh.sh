@@ -5,9 +5,9 @@
 #      backtest -> market-beat -> report + web bundle).
 #
 # This keeps ratings / simulation / the web dashboard current as new
-# international matches land. NOTE: brand-new World Cup *odds* and *played
-# results* still need a data-acquisition pass (the LLM web-fetch step) to land
-# in data/wc2026/ — this script does the mechanical recompute, not the fetch.
+# international matches land. World Cup *played results* and *kickoff times* are
+# pulled automatically from ESPN's scoreboard API (scripts/fetch_results.py);
+# only brand-new *odds* still come from the the-odds-api fetch below.
 #
 # Self-terminating: it no-ops once the tournament is over (after 2026-07-19),
 # so the scheduler can be left in place and forgotten.
@@ -40,6 +40,9 @@ fi
   if [[ -f .secrets.local.json ]]; then
     "$PY" scripts/fetch_live_odds.py || echo "live-odds fetch failed — using last odds"
   fi
+  # pull played results + kickoff times from ESPN (safe: only ingests completed
+  # matches; idempotent). Keeps scores/times current without the manual step.
+  "$PY" scripts/fetch_results.py || echo "results fetch failed — keeping existing"
   "$PY" scripts/run_pipeline.py --sims 50000
   echo "=== done $(date) ==="
 } >>"$LOG" 2>&1
