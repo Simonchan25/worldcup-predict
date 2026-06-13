@@ -58,7 +58,37 @@ def _lean(diff: float, tol: float) -> str:
     return "home" if diff > tol else ("away" if diff < -tol else "even")
 
 
-def match_factors(fx: dict, values: dict, form_h: list, form_a: list, mkt: dict | None) -> dict:
+def head_to_head(df: pd.DataFrame, A: str, B: str, asof, n: int = 6) -> dict | None:
+    """Real historical head-to-head between A and B before asof: all-time
+    W-D-L from A's perspective, goals, and the last `n` meetings with scores."""
+    asof = pd.Timestamp(asof)
+    sub = df[(((df["home_team"] == A) & (df["away_team"] == B)) |
+              ((df["home_team"] == B) & (df["away_team"] == A))) & (df["date"] < asof)]
+    if not len(sub):
+        return None
+    aw = dw = bw = gfa = gfb = 0
+    meetings = []
+    for r in sub.itertuples(index=False):
+        a_home = r.home_team == A
+        ga, gb = (r.home_score, r.away_score) if a_home else (r.away_score, r.home_score)
+        gfa += ga; gfb += gb
+        aw += ga > gb; dw += ga == gb; bw += ga < gb
+        meetings.append({"date": str(pd.Timestamp(r.date).date()),
+                         "score": f"{int(ga)}-{int(gb)}", "comp": str(r.tournament),
+                         "res": "A" if ga > gb else ("D" if ga == gb else "B")})
+    last = meetings[-1]
+    recent = meetings[-n:]
+    ra = sum(m["res"] == "A" for m in recent)
+    rb = sum(m["res"] == "B" for m in recent)
+    return {"n": int(len(sub)), "a_wins": int(aw), "draws": int(dw), "b_wins": int(bw),
+            "gf_a": int(gfa), "gf_b": int(gfb), "last": last,
+            "recent_a": ra, "recent_b": rb, "recent_n": len(recent),
+            "recent": list(reversed(recent))}
+
+
+def match_factors(fx: dict, values: dict, form_h: list, form_a: list, mkt: dict | None,
+                  h2h: dict | None = None, inj_h: list | None = None,
+                  inj_a: list | None = None) -> dict:
     """Structured driver list + prose narrative for one fixture."""
     H, A = fx["home"], fx["away"]
     eh, ea = float(fx["elo_h"]), float(fx["elo_a"])
@@ -93,6 +123,20 @@ def match_factors(fx: dict, values: dict, form_h: list, form_a: list, mkt: dict 
     else:
         factors.append({"label": "场地", "lean": "even", "detail": "中立场"})
 
+    clim = fx.get("climate")
+    if clim and (abs(clim["d_home"]) >= 2 or abs(clim["d_away"]) >= 2):
+        parts = []
+        if clim["altitude_m"] >= 1200:
+            parts.append(f"{int(clim['altitude_m'])}m 高原")
+        if clim["heat_severity"] >= 0.4:
+            parts.append(f"{int(clim['temp_c'])}°C{'湿热' if clim['humid'] else '高温'}"
+                         f"{'·有顶棚' if clim['roof'] else ''}")
+        if not parts:
+            parts.append(f"{int(clim['altitude_m'])}m / {int(clim['temp_c'])}°C")
+        worse = H if clim["d_home"] < clim["d_away"] else A
+        factors.append({"label": "气候/海拔", "lean": clim["lean"],
+                        "detail": f"{'·'.join(parts)} — {worse} 适应偏弱"})
+
     diverge = None
     if mkt:
         mh, md, ma = mkt["mkt_home"], mkt["mkt_draw"], mkt["mkt_away"]
@@ -101,21 +145,98 @@ def match_factors(fx: dict, values: dict, form_h: list, form_a: list, mkt: dict 
         factors.append({"label": "模型 vs 市场", "lean": "home" if d_fav > 0.02 else ("away" if d_fav < -0.02 else "even"),
                         "detail": f"{fav} 模型 {favp:.0%} / 市场 {(mh if fav==H else ma):.0%}"})
 
-    # prose
-    bits = [f"模型看好 **{fav}**（{favp:.0%}），预期比分约 {lh:.1f}–{la:.1f}。"]
-    if abs(gap) >= 150:
-        bits.append(f"{'实力差距明显' if abs(gap)>=300 else '实力略占优'}（Elo {gap:+.0f}）。")
-    if vh and va and max(vh, va) / max(min(vh, va), 1) >= 3:
+    # ---- evidence: explicit, numeric, per-match facts (rendered as a list) ----
+    evidence = []
+    if h2h:
+        if h2h["n"] >= 2:
+            evidence.append({"k": "h2h", "t":
+                f"历史交手 {h2h['n']} 次：{H} {h2h['a_wins']} 胜 {h2h['draws']} 平 "
+                f"{h2h['b_wins']} 负（总比分 {h2h['gf_a']}:{h2h['gf_b']}）"})
+        last = h2h["last"]
+        won = H if last["res"] == "A" else (A if last["res"] == "B" else None)
+        evidence.append({"k": "h2h_last", "t":
+            f"最近交手 {last['date']}：{H} {last['score']} {A}"
+            + (f"（{won} 胜 · {last['comp']}）" if won else f"（战平 · {last['comp']}）")})
+    else:
+        evidence.append({"k": "h2h", "t": f"{H} 与 {A} 此前无可考的交手记录，参照系更依赖实力评分"})
+    evidence.append({"k": "form", "t":
+        f"近况：{H} {form_str(form_h)}（{fpts(form_h)} 分）· {A} {form_str(form_a)}（{fpts(form_a)} 分）"})
+    evidence.append({"k": "elo", "t": f"实力评分 Elo {eh:.0f} vs {ea:.0f}（差 {gap:+.0f}）"})
+    if vh and va:
+        evidence.append({"k": "value", "t": f"阵容总身价 €{vh:.0f}M vs €{va:.0f}M"})
+    if inj_h:
+        evidence.append({"k": "inj", "t": f"{H} 伤停/存疑：" + "、".join(x.get("player", "") for x in inj_h[:3])})
+    if inj_a:
+        evidence.append({"k": "inj", "t": f"{A} 伤停/存疑：" + "、".join(x.get("player", "") for x in inj_a[:3])})
+    if clim and abs(clim["d_home"] - clim["d_away"]) >= 4:
+        net = clim["d_home"] - clim["d_away"]
+        adv = H if net > 0 else A
+        loc = (f"{int(clim['altitude_m'])}m 高原" if clim["altitude_m"] >= 1200
+               else f"{int(clim['temp_c'])}°C {'湿热' if clim['humid'] else '高温'}")
+        evidence.append({"k": "climate", "t":
+            f"{loc}（{clim['venue']}）：{adv} 更适应（净 {abs(net):.0f} Elo）"})
+    mp_fav = None
+    if diverge is not None:
+        mp_fav = mkt["mkt_home"] if fav == H else mkt["mkt_away"]
+        evidence.append({"k": "market", "t":
+            f"市场对 {fav} 隐含 {mp_fav:.0%}，模型 {favp:.0%}（差 {diverge:+.1f}pp）"})
+
+    def _gavg(f):
+        return (sum(x["gf"] for x in f) / len(f), sum(x["ga"] for x in f) / len(f)) if f else None
+    gh_, ga_ = _gavg(form_h), _gavg(form_a)
+    if gh_ and ga_:
+        evidence.append({"k": "goals", "t":
+            f"近期攻防：{H} 场均进 {gh_[0]:.1f}/失 {gh_[1]:.1f} · {A} 场均进 {ga_[0]:.1f}/失 {ga_[1]:.1f}"})
+    # Elo-implied (paper) win prob for the favourite — a cross-check on the DC model
+    elo_adv = gap if fav == H else -gap
+    elo_p = 1.0 / (1.0 + 10 ** (-elo_adv / 400.0))
+    evidence.append({"k": "elo", "t":
+        f"Elo 纸面胜率（不计平局）≈ {fav} {elo_p:.0%}；模型（含平局/主场/状态）给 {favp:.0%}"})
+    pick_o = max(("home", "draw", "away"), key=lambda k: {"home": ph, "draw": pdr, "away": pa}[k])
+    sb_local = _score_breakdown(fx.get("markets"))
+    pred_score = (((sb_local.get("by_result") or {}).get(pick_o)
+                   or (sb_local.get("top") or [{}])[0]) or {}).get("score", "")
+
+    # ---- narrative: a structured, evidence-backed argument ----
+    conf = "强烈看好" if favp >= 0.62 else ("看好" if favp >= 0.45 else "略偏向")
+    bits = [f"模型{conf} **{fav}**（胜率 {favp:.0%}；预期进球 {lh:.1f}–{la:.1f}，单一最可能比分 {pred_score}）。"]
+    why = []
+    if abs(gap) >= 100:
+        why.append(f"{(H if gap>0 else A)} 实力评分高 {abs(gap):.0f} 分（Elo 纸面胜率约 {elo_p:.0%}）")
+    if vh and va and max(vh, va) / max(min(vh, va), 1) >= 2:
         rich = H if vh > va else A
-        bits.append(f"{rich} 阵容身价高出数倍。")
-    top = str(fx.get("top_scores", "")).split("; ")[:1]
-    if top and top[0]:
-        bits.append(f"最可能比分 {top[0]}。")
+        why.append(f"{rich} 阵容身价约为对手 {max(vh, va) / max(min(vh, va), 1):.1f} 倍（€{max(vh, va):.0f}M vs €{min(vh, va):.0f}M）")
+    if clim and abs(clim["d_home"] - clim["d_away"]) >= 8:
+        net = clim["d_home"] - clim["d_away"]
+        why.append(f"{'高原' if clim['altitude_m'] >= 1200 else '湿热高温'}环境利好 {(H if net>0 else A)}（气候净 {abs(net):.0f} Elo）")
+    if why:
+        bits.append("核心支撑：" + "；".join(why[:2]) + "。")
+    if h2h and h2h["n"] >= 3:
+        dom = h2h["a_wins"] - h2h["b_wins"]
+        tail = (f"，{(H if dom>0 else A)} 略占上风" if abs(dom) >= 2 else "，互有胜负")
+        bits.append(f"历史交手 {H} {h2h['a_wins']}-{h2h['draws']}-{h2h['b_wins']}"
+                    f"（最近 {h2h['last']['score']}，{h2h['last']['date']}）{tail}。")
+    elif h2h is None:
+        bits.append("两队几乎无交手史，故判断权重落在实力评分与近期状态、而非历史心理优势。")
+    caveats = []
+    if inj_h:
+        caveats.append(f"{H} {inj_h[0].get('player', '')} 伤停存疑")
+    if inj_a:
+        caveats.append(f"{A} {inj_a[0].get('player', '')} 伤停存疑")
+    if abs(gap) < 80:
+        caveats.append("两队实力接近")
+    if 0.33 <= favp <= 0.42:
+        caveats.append("无明显热门、平局概率不低")
+    if caveats:
+        bits.append("不确定性：" + "、".join(caveats[:3]) + "。")
     if diverge is not None and abs(diverge) >= 3:
-        bits.append(f"模型比市场更{'看好' if diverge>0 else '看淡'} {fav}（{diverge:+.1f}pp）——值得关注的分歧点。")
+        bits.append(f"市场给 {fav} {mp_fav:.0%}、比模型{'高' if diverge < 0 else '低'} {abs(diverge):.0f}pp——"
+                    + ("市场更看重其纸面实力，模型因上述不确定性更保守。" if diverge < 0
+                       else "模型认为市场低估了它，是值得留意的分歧点。"))
     elif mkt:
-        bits.append("与市场基本一致。")
-    return {"factors": factors, "narrative": " ".join(bits), "diverge": diverge}
+        bits.append("模型与市场基本一致，无显著分歧。")
+    return {"factors": factors, "narrative": " ".join(bits), "diverge": diverge,
+            "evidence": evidence, "h2h": h2h}
 
 
 def elo_trend(df: pd.DataFrame, teams: list[str], months: int = 16) -> dict:
@@ -168,6 +289,87 @@ def odds_compare(fx: dict, book: dict | None) -> list[dict]:
     return rows
 
 
+def smart_bets(mk: dict, oc_rows: list | None) -> dict | None:
+    """Per-match betting suggestions derived from the model's full market set
+    + whatever live book odds we have. Returns:
+      safest  — highest model hit-rate single pick (odds in a sane 1.25–4 band)
+      value   — highest-EV pick *among book-priced* selections (honest: often ≤0)
+      basket  — smallest set of correct scores covering ≥50% (not just one score)
+      combo   — a same-game 2-leg ticket whose JOINT probability is summed from
+                the score grid (correct correlation), priced at book odds×book odds
+    """
+    if not mk:
+        return None
+    ocm = {(r["market"], r["sel"]): r for r in (oc_rows or [])}
+    plays = []
+
+    def add(market, sel, p, bookrow=None):
+        book = bookrow.get("book") if bookrow else None
+        odds = float(book) if book else round(1.0 / max(p, 1e-6), 2)
+        plays.append({"market": market, "sel": sel, "p": round(float(p), 4),
+                      "odds": round(odds, 2), "ev": round(float(p) * odds - 1, 3),
+                      "book": bool(book)})
+
+    x = mk.get("1x2", {})
+    add("胜平负", "主胜", x.get("home", 0), ocm.get(("胜平负", "主胜")))
+    add("胜平负", "平局", x.get("draw", 0), ocm.get(("胜平负", "平局")))
+    add("胜平负", "客胜", x.get("away", 0), ocm.get(("胜平负", "客胜")))
+    dc = mk.get("double_chance", {})
+    add("双重机会", "主胜或平", dc.get("1X", 0))
+    add("双重机会", "平或客胜", dc.get("X2", 0))
+    add("双重机会", "不平局", dc.get("12", 0))
+    for ln in ("1.5", "2.5", "3.5"):
+        ou = mk.get("over_under", {}).get(ln, {})
+        add("进球", "大 " + ln, ou.get("over", 0), ocm.get(("进球大小", "大 " + ln)))
+        add("进球", "小 " + ln, ou.get("under", 0), ocm.get(("进球大小", "小 " + ln)))
+    by = mk.get("btts", {})
+    add("双方进球", "是", by.get("yes", 0))
+    add("双方进球", "否", by.get("no", 0))
+    for ln, d in (mk.get("ah", {}) or {}).items():
+        if d.get("p_home", 0) > 0.03:
+            add("亚盘", f"主 {ln}", d["p_home"])
+        if d.get("p_away", 0) > 0.03:
+            add("亚盘", f"客 {ln}", d["p_away"])
+
+    safe_cand = [p for p in plays if 1.25 <= p["odds"] <= 4.0]
+    safest = max(safe_cand or plays, key=lambda p: p["p"])
+    bookp = [p for p in plays if p["book"]]
+    value = max(bookp, key=lambda p: p["ev"]) if bookp else None
+
+    cs = sorted(mk.get("correct_score", []) or [], key=lambda c: -c["p"])
+    scores, cum = [], 0.0
+    for c in cs:
+        scores.append(c["score"]); cum += c["p"]
+        if cum >= 0.5 or len(scores) >= 4:
+            break
+    basket = {"scores": scores, "hit": round(cum, 4),
+              "fair": round(1.0 / max(cum, 1e-6), 2)} if scores else None
+
+    combo = None
+    grid = mk.get("grid")
+    if grid and x:
+        fav = "主胜" if x.get("home", 0) >= x.get("away", 0) else "客胜"
+        ou25 = mk.get("over_under", {}).get("2.5", {})
+        gl = "大 2.5" if ou25.get("over", 0) >= ou25.get("under", 0) else "小 2.5"
+        jp = 0.0
+        for i, row in enumerate(grid):
+            for j, pij in enumerate(row):
+                res_ok = (i > j) if fav == "主胜" else (j > i)
+                gl_ok = (i + j >= 3) if gl == "大 2.5" else (i + j <= 2)
+                if res_ok and gl_ok:
+                    jp += pij
+        ra, rb = ocm.get(("胜平负", fav)), ocm.get(("进球大小", gl))
+        pa = x.get("home", 0) if fav == "主胜" else x.get("away", 0)
+        pb = ou25.get("over", 0) if gl == "大 2.5" else ou25.get("under", 0)
+        oa = float(ra["book"]) if ra and ra.get("book") else round(1.0 / max(pa, 1e-6), 2)
+        ob = float(rb["book"]) if rb and rb.get("book") else round(1.0 / max(pb, 1e-6), 2)
+        codds = round(oa * ob, 2)
+        combo = {"legs": [fav, gl], "p": round(jp, 4), "odds": codds,
+                 "ev": round(jp * codds - 1, 3),
+                 "book": bool(ra and ra.get("book") and rb and rb.get("book"))}
+    return {"safest": safest, "value": value, "basket": basket, "combo": combo}
+
+
 def _score_breakdown(mk: dict) -> dict:
     """Most likely scoreline overall + the top score for each result type."""
     cs = mk.get("correct_score", []) if mk else []
@@ -191,8 +393,10 @@ def build_schedule(schedule: list, all_fixtures) -> list[dict]:
         n = m.get("n")
         home, away = str(m.get("home")), str(m.get("away"))
         ko_slot = m.get("stage") != "group" and home not in FLAGS
-        e = {"n": n, "date": m.get("date"), "stage": m.get("stage"), "group": m.get("group"),
-             "venue": m.get("venue_country", ""), "status": m.get("status", "scheduled"),
+        e = {"n": n, "date": m.get("date"), "kickoff": m.get("kickoff"),
+             "stage": m.get("stage"), "group": m.get("group"),
+             "venue": m.get("venue_city") or m.get("venue_country", ""),
+             "status": m.get("status", "scheduled"),
              "home": home, "away": away, "flagH": flag(home) if home in FLAGS else "",
              "flagA": flag(away) if away in FLAGS else "", "ko_slot": ko_slot}
         if m.get("status") == "played" and m.get("home_score") is not None:
@@ -202,12 +406,15 @@ def build_schedule(schedule: list, all_fixtures) -> list[dict]:
         p = pred.get(n)
         if p and p.get("home") in FLAGS and p.get("away") in FLAGS:
             sb = _score_breakdown(p.get("markets"))
-            top = (sb.get("top") or [{}])[0]
             probs = {"home": p["p_home"], "draw": p["p_draw"], "away": p["p_away"]}
             pick = max(probs, key=probs.get)
+            # show the most-likely scoreline *consistent with the pick* (a
+            # favourite's single likeliest exact score, not the global modal
+            # which is often a low draw) — fixes "everything shows 1-1".
+            byr = (sb.get("by_result") or {}).get(pick) or (sb.get("top") or [{}])[0]
             e.update(home=p["home"], away=p["away"], flagH=flag(p["home"]), flagA=flag(p["away"]))
             e["pred"] = {"p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"],
-                         "pick": pick, "pick_p": probs[pick], "score": top.get("score", ""),
+                         "pick": pick, "pick_p": probs[pick], "score": (byr or {}).get("score", ""),
                          "lambda_h": p["lambda_h"], "lambda_a": p["lambda_a"]}
             if "actual_outcome" in e:
                 e["pred_hit"] = int(pick == e["actual_outcome"])
@@ -269,19 +476,24 @@ _RE_THIRD = re.compile(r"^3:([A-L]+|\*)$")
 _RE_WL = re.compile(r"^([WL]):?(\d+)$")
 
 
-def ko_matchup(home, away, venue, ratings, params, max_goals: int = 10) -> dict:
+def ko_matchup(home, away, venue, ratings, params, venue_city=None, climate=None,
+               max_goals: int = 10) -> dict:
     """Model probabilities for a knockout tie between two concrete teams,
     resolved exactly the way the simulator does: regulation from the
     Dixon-Coles grid, a draw goes to extra time (independent Poisson at a third
-    of the 90' rate) and then a 50/50 shootout. Returns home/away advance
+    of the 90' rate) and then a 50/50 shootout, plus the same 2026 venue/
+    altitude adaptation nudge the simulator uses. Returns home/away advance
     probabilities plus the most-likely regulation scoreline."""
+    dh, da = (climate.match_delta(home, away, venue_city)
+              if (climate and venue_city) else (0.0, 0.0))
     swapped = away in HOSTS and away == venue and home != venue
     if swapped:
-        a, b, flag = away, home, 1
+        a, b, flag, d_a, d_b = away, home, 1, da, dh
     else:
-        a, b = home, away
+        a, b, d_a, d_b = home, away, dh, da
         flag = 1 if (home in HOSTS and home == venue) else 0
-    m, lh, la = model.score_matrix(ratings[a], ratings[b], params, home=float(flag))
+    m, lh, la = model.score_matrix(ratings[a] + d_a, ratings[b] + d_b, params,
+                                   home=float(flag))
     p_a = float(np.tril(m, -1).sum())          # a wins in regulation
     p_d = float(np.trace(m))
     g = np.arange(max_goals + 1)
@@ -353,14 +565,14 @@ def build_bracket(sim, adv, ratings, params) -> dict:
                 node["p_home_adv"] = 1.0 if w == h else 0.0
                 node["p_away_adv"] = 1.0 if w == a else 0.0
             else:
-                mm = ko_matchup(h, a, venue, ratings, params)
+                mm = ko_matchup(h, a, venue, ratings, params,
+                                venue_city=m.get("venue_city"),
+                                climate=getattr(sim, "climate", None))
                 node.update(mm)
                 w = h if mm["p_home_adv"] >= mm["p_away_adv"] else a
             win[n], lose[n] = w, (a if w == h else h)
         by_stage.setdefault(stage, []).append(node)
     order = ["r32", "r16", "qf", "sf", "final", "third"]
-    champion = win.get(sim.ko_template[-1]["n"]) if sim.ko_template else None
-    # the final is the highest-round non-third match
     final_n = next((m["n"] for m in reversed(sim.ko_template) if m["stage"] == "final"), None)
     return {"rounds": [{"stage": s, "matches": by_stage[s]} for s in order if s in by_stage],
             "projected_champion": win.get(final_n), "g1": g1, "g2": g2}
@@ -373,19 +585,30 @@ def live_scoreboard(live) -> dict | None:
     if live is None or not len(live):
         return None
     idx = {"H": 0, "D": 1, "A": 2}
-    rps_model, rps_unif = [], []
+    rps_model, rps_unif, scores_hit = [], [], 0
     for r in live.itertuples(index=False):
         o = idx[r.outcome]
         rps_model.append(backtest.rps([r.p_home, r.p_draw, r.p_away], o))
         rps_unif.append(backtest.rps([1 / 3, 1 / 3, 1 / 3], o))
+        if live_pred_score(r._asdict()) == getattr(r, "actual", None):
+            scores_hit += 1
     n = len(rps_model)
     return {
         "n": n,
         "rps_model": round(float(np.mean(rps_model)), 4),
         "rps_uniform": round(float(np.mean(rps_unif)), 4),
         "calls_hit": int(live["fav_hit"].sum()),
+        "scores_hit": scores_hit,
         "beats_uniform": float(np.mean(rps_model)) < float(np.mean(rps_unif)),
     }
+
+
+def live_pred_score(r: dict) -> str:
+    """Pick-consistent most-likely scoreline for a (played or upcoming) row."""
+    sb = _score_breakdown(r.get("markets"))
+    probs = {"home": r.get("p_home", 0), "draw": r.get("p_draw", 0), "away": r.get("p_away", 0)}
+    pick = max(probs, key=probs.get)
+    return (((sb.get("by_result") or {}).get(pick) or (sb.get("top") or [{}])[0]) or {}).get("score", "")
 
 
 def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, values,
@@ -444,13 +667,20 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         for m in live_odds.get("matches", []):
             live_map[(m["home"], m["away"])] = m
 
+    inj_map = (injuries or {}).get("by_team", {}) if isinstance(injuries, dict) else {}
+
     fixtures_out = []
     for fx in fixtures.to_dict("records"):
         H, A = fx["home"], fx["away"]
         mkt = fmkt.get((H, A))
-        meta = match_factors(fx, values, form(H), form(A), mkt)
+        meta = match_factors(fx, values, form(H), form(A), mkt,
+                             h2h=head_to_head(df, H, A, asof),
+                             inj_h=inj_map.get(H), inj_a=inj_map.get(A))
+        ocmp = odds_compare({**fx}, live_map.get((H, A)))
         fixtures_out.append({
-            "n": fx.get("n"), "date": fx["date"], "group": fx.get("group"),
+            "n": fx.get("n"), "date": fx["date"],
+            "kickoff": fx.get("kickoff") if isinstance(fx.get("kickoff"), str) else None,
+            "group": fx.get("group"),
             "stage": fx.get("stage"), "home": H, "away": A,
             "flagH": flag(H), "flagA": flag(A),
             "p_home": fx["p_home"], "p_draw": fx["p_draw"], "p_away": fx["p_away"],
@@ -461,11 +691,13 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
                         "source": mkt.get("source", "")} if mkt else None),
             "form_h": form(H), "form_a": form(A),
             "factors": meta["factors"], "narrative": meta["narrative"], "diverge": meta["diverge"],
+            "evidence": meta.get("evidence", []), "h2h": meta.get("h2h"),
             "markets": fx.get("markets"),
-            "odds_compare": odds_compare({**fx, "p_home": fx["p_home"], "p_draw": fx["p_draw"],
-                                          "p_away": fx["p_away"]}, live_map.get((H, A))),
+            "odds_compare": ocmp,
+            "smart_bets": smart_bets(fx.get("markets"), ocmp),
             "score_breakdown": _score_breakdown(fx.get("markets")),
             "referee": (referees or {}).get("by_match", {}).get(f"{H}|{A}"),
+            "climate": fx.get("climate"), "venue_city": fx.get("venue_city"),
         })
 
     # best picks — model's most confident calls, ranked by max outcome prob
@@ -474,7 +706,9 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         probs = {"主胜": fo["p_home"], "平局": fo["p_draw"], "客胜": fo["p_away"]}
         sel = max(probs, key=probs.get)
         sb = fo.get("score_breakdown") or {}
-        topcs = (sb.get("top") or [{}])[0]
+        # scoreline consistent with the pick (not the global modal draw)
+        key = {"主胜": "home", "平局": "draw", "客胜": "away"}[sel]
+        topcs = (sb.get("by_result") or {}).get(key) or (sb.get("top") or [{}])[0]
         edges = [r["edge"] for r in fo.get("odds_compare", [])]
         best_picks.append({
             "date": fo["date"], "home": fo["home"], "away": fo["away"], "stage": fo["stage"],
@@ -490,14 +724,18 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
     idx3 = {"H": 0, "D": 1, "A": 2}
     if live is not None and len(live):
         for r in live.to_dict("records"):
+            pscore = live_pred_score(r)
             live_out.append({
                 "n": r.get("n"), "stage": r.get("stage"), "group": r.get("group"),
-                "date": r["date"], "home": r["home"], "away": r["away"],
+                "date": r["date"],
+                "kickoff": r.get("kickoff") if isinstance(r.get("kickoff"), str) else None,
+                "home": r["home"], "away": r["away"],
                 "flagH": flag(r["home"]), "flagA": flag(r["away"]),
                 "actual": r["actual"], "p_home": r["p_home"], "p_draw": r["p_draw"],
                 "p_away": r["p_away"], "outcome": r["outcome"], "rps": round(r["rps"], 4),
                 "rps_uniform": round(backtest.rps([1 / 3, 1 / 3, 1 / 3], idx3[r["outcome"]]), 4),
                 "fav_hit": int(r["fav_hit"]),
+                "pred_score": pscore, "score_hit": int(pscore == r["actual"]),
             })
 
     credibility = {

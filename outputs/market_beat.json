@@ -4,7 +4,7 @@
    "wc": "2014 (Betfair)",
    "kind": "Betfair 赔率",
    "n": 64,
-   "rps_model": 0.18757159613840868,
+   "rps_model": 0.18757328396188017,
    "rps_market": 0.1921384837078916,
    "is_bookmaker": true,
    "unmatched": 0,
@@ -14,7 +14,7 @@
    "wc": "2018 (Betfair)",
    "kind": "Betfair 赔率",
    "n": 48,
-   "rps_model": 0.2065194777064694,
+   "rps_model": 0.20652004444899652,
    "rps_market": 0.1904236490546578,
    "is_bookmaker": true,
    "unmatched": 0,
@@ -24,7 +24,7 @@
    "wc": "2018 (538)",
    "kind": "FiveThirtyEight 模型",
    "n": 64,
-   "rps_model": 0.20858619395405995,
+   "rps_model": 0.20858674876904648,
    "rps_market": 0.19863543695312502,
    "is_bookmaker": false,
    "unmatched": 0,
@@ -34,7 +34,7 @@
    "wc": "2022 (538)",
    "kind": "FiveThirtyEight 模型",
    "n": 64,
-   "rps_model": 0.22431994114417056,
+   "rps_model": 0.2243201935306727,
    "rps_market": 0.21916480718749998,
    "is_bookmaker": false,
    "unmatched": 0,
@@ -43,10 +43,10 @@
  ],
  "overall": {
   "n": 112,
-  "rps_model": 0.19569211681043472,
+  "rps_model": 0.1956933241706443,
   "rps_market": 0.19140355457079142,
   "model_better": false,
-  "margin": -0.004288562239643301
+  "margin": -0.004289769599852888
  },
  "note": "对标真实博彩闭线（2014+2018 Betfair）。市场赔率经 proportional 去 margin。538 行为职业模型对照。RPS 越低越好；模型要「跑赢市场」须 RPS ≤ 市场。样本为可联网取得的历史赔率，不含全部淘汰赛场次。"
 }

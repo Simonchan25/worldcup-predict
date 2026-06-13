@@ -119,8 +119,8 @@ def check_group_sim():
     for _ in range(300):
         import collections
         gr = collections.defaultdict(list)
-        for g, h, a, vc, played, hs, as_ in sim.group_matches:
-            gh, ga = sim.sample_match(h, a, vc)
+        for g, h, a, vc, vcity, played, hs, as_ in sim.group_matches:
+            gh, ga = sim.sample_match(h, a, vc, vcity)
             gr[g].append((h, a, gh, ga))
         ranked, _ = sim.rank_group(groups_teams := sim.groups["A"], gr["A"])
         reached_counts[ranked[0]] += 1

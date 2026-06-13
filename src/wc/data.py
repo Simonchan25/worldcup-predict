@@ -61,6 +61,15 @@ def load_wc2026() -> dict:
     ]:
         p = WC / fname
         out[key] = _load_json(p) if p.exists() else None
+    # kickoff times (UTC ISO, keyed by match n) — attached onto the schedule so
+    # they flow downstream; the frontend localises them to each viewer's zone.
+    kp = WC / "kickoffs.json"
+    if kp.exists():
+        kicks = _load_json(kp)
+        for m in out["schedule"]:
+            ko = kicks.get(str(m.get("n")))
+            if ko:
+                m["kickoff"] = ko
     return out
 
 
@@ -68,3 +77,25 @@ def wc_team_list(groups: dict) -> list[str]:
     teams = [t for g in sorted(groups) for t in groups[g]]
     assert len(teams) == len(set(teams)), "duplicate team across groups"
     return teams
+
+
+def wc_played_results(schedule: list) -> pd.DataFrame:
+    """Played 2026 World Cup matches in results.csv format, so Elo can update
+    in real time as the tournament unfolds — the upstream martj42 feed often
+    records WC scores days late (rows sit at NA), which would otherwise leave
+    the model blind to results that have already happened."""
+    nm = load_name_map(WC / "name_map.json")
+    rows = []
+    for m in schedule:
+        if (m.get("status") != "played" or m.get("home_score") is None
+                or m.get("away_score") is None):
+            continue
+        vc = m.get("venue_country", "")
+        rows.append({
+            "date": pd.Timestamp(m["date"]),
+            "home_team": canon(str(m["home"]), nm), "away_team": canon(str(m["away"]), nm),
+            "home_score": int(m["home_score"]), "away_score": int(m["away_score"]),
+            "tournament": "FIFA World Cup", "city": m.get("venue_city", ""),
+            "country": vc, "neutral": vc not in (str(m["home"]), str(m["away"])),
+        })
+    return pd.DataFrame(rows, columns=RESULT_COLS)

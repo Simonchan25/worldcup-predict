@@ -8,23 +8,35 @@
   const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   const fo = p => (1 / Math.max(p, 1e-6)).toFixed(2);
   const sc = s => String(s || "").replace("-", " – ");
+  const pickKey = fx => { const p = { home: fx.p_home, draw: fx.p_draw, away: fx.p_away };
+    return p.home >= p.draw && p.home >= p.away ? "home" : (p.away >= p.draw ? "away" : "draw"); };
+  // single likeliest exact score *consistent with the model's pick* (a
+  // favourite's modal win score, not the global modal which is often a low draw)
+  const predScore = fx => { const byr = (fx.score_breakdown || {}).by_result || {};
+    return ((byr[pickKey(fx)] || (fx.top_scores || [{}])[0]) || {}).score || ""; };
+  // UTC kickoff -> the viewer's own local time (so 五湖四海各看各的本地时间)
+  const koTime = iso => { if (!iso) return ""; const d = new Date(iso);
+    return isNaN(d) ? "" : d.toLocaleString([], { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }); };
+  const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { return ""; } })();
+  // chronological sort key: real kickoff (UTC ISO) first, untimed matches last in their day
+  const koKey = m => m.kickoff || ((m.date || "") + "T99:99");
+  const byTime = (a, b) => (a.date || "").localeCompare(b.date || "") || koKey(a).localeCompare(koKey(b)) || ((a.n || 0) - (b.n || 0));
   const INJ = D.injuries || {};
   const PAL = ["#10b981", "#3b82f6", "#a78bfa", "#f472b6", "#fbbf24", "#22d3ee"];
 
   const NAV = [
-    ["home", "🏠", "首页"], ["schedule", "📅", "赛程"], ["matches", "⚽", "比赛预测"],
-    ["score", "🎯", "比分预测"], ["picks", "⭐", "最佳选择"], ["bet", "💰", "赔率与买入"],
-    ["groups", "📊", "小组"], ["analytics", "🔬", "数据分析"],
+    ["home", "🏠", "首页"], ["schedule", "📅", "赛程"], ["bracket", "🗺️", "晋级树"],
+    ["matches", "⚽", "比赛预测"], ["score", "🎯", "比分预测"], ["picks", "⭐", "最佳选择"],
+    ["bet", "💰", "赔率与买入"], ["groups", "📊", "小组"], ["analytics", "🔬", "数据分析"],
   ];
-  const upcoming = () => D.fixtures.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const upcoming = () => D.fixtures.slice().sort(byTime);
 
   function chrome() {
     $("#topnav").innerHTML = NAV.map(([id, , l]) => `<a href="#${id}" data-v="${id}">${esc(l)}</a>`).join("");
-    $("#sidenav").innerHTML = NAV.map(([id, ic, l]) => `<a href="#${id}" data-v="${id}"><span class="ic">${ic}</span>${esc(l)}</a>`).join("");
+    const sn = $("#sidenav"); if (sn) sn.innerHTML = "";
     $("#asof-chip").textContent = "数据 " + D.meta.asof;
     const lo = D.live_odds;
     if (lo) $("#live-chip").textContent = "实时赔率 " + (lo.asof || ""); else $("#live-chip").style.display = "none";
-    $("#side-update").innerHTML = `本届数据 ${D.meta.asof}<br>实时赔率 ${lo ? esc(lo.asof) : "—"}<br>${D.meta.n_sims.toLocaleString()} 次模拟`;
   }
 
   /* ---------- match card ---------- */
@@ -36,12 +48,26 @@
     const stats = [r.y != null ? `黄 ${r.y}` : "", r.pen != null ? `点球 ${r.pen}/场` : ""].filter(Boolean).join(" · ");
     return `<div class="ref-line"><span class="ic">🧑‍⚖️</span><span>主裁 <b>${esc(r.referee)}</b>（${esc(r.nat || "")}）${stats ? "· " + stats : ""}${r.style ? "<br><span class='dim'>" + esc(r.style.slice(0, 90)) + "</span>" : ""}</span></div>`;
   }
+  const EVICON = { h2h: "🆚", h2h_last: "🕐", form: "📈", goals: "⚽", elo: "🎯", value: "💰", inj: "🩹", climate: "🌡️", market: "💱" };
+  function evList(fx) {
+    const e = fx.evidence || []; if (!e.length) return "";
+    return `<details class="evidence"><summary>判断依据 · ${e.length} 条证据</summary><ul>` +
+      e.map(x => `<li><span class="evi">${EVICON[x.k] || "•"}</span>${esc(x.t)}</li>`).join("") + `</ul></details>`;
+  }
+  function climLine(fx) {
+    const c = fx.climate; if (!c || (Math.abs(c.d_home) < 2 && Math.abs(c.d_away) < 2)) return "";
+    const tags = [];
+    if (c.altitude_m >= 1200) tags.push(`🏔️ ${c.altitude_m}m 高原`);
+    if (c.heat_severity >= 0.4) tags.push(`🌡️ ${c.temp_c}°C${c.humid ? "湿热" : "高温"}${c.roof ? "·有顶棚" : ""}`);
+    if (!tags.length) tags.push(`📍 ${esc(c.venue)} ${c.altitude_m}m / ${c.temp_c}°C`);
+    const worse = c.d_home <= c.d_away ? fx.home : fx.away, adj = Math.min(c.d_home, c.d_away);
+    return `<div class="clim-line"><span class="ic">${tags.join(" · ")}</span><span class="dim">${esc(worse)} 适应偏弱 ${adj.toFixed(0)} Elo</span></div>`;
+  }
   function matchCard(fx) {
     const ph = fx.p_home, pdr = fx.p_draw, pa = fx.p_away;
     const seg = (w, c, l) => `<span class="${c}" style="width:${100 * w}%">${100 * w >= 13 ? l : ""}</span>`;
     const facs = (fx.factors || []).filter(f => f.label !== "近期状态").map(f =>
       `<div class="fac lean-${f.lean}"><span class="dot"></span><span class="fl">${esc(f.label)}</span><span class="fd">${esc(f.detail)}</span></div>`).join("");
-    const top = (fx.top_scores || [{}])[0];
     const sl = (fx.top_scores || []).slice(0, 3).map(s => `<span class="sl">${esc(s.score)}<small>${esc(s.p)}</small></span>`).join("");
     const m = fx.markets;
     const mkts = m ? `<div class="mkts">
@@ -53,10 +79,10 @@
       return `<div class="inj"><span class="ic">🩹</span><span>${fl} ${esc(t)}：${it.slice(0, 3).map(x => esc(x.player) + (x.status && x.status !== "out" ? `(${esc(x.status)})` : "")).join("、")}${it.length > 3 ? " 等" : ""}</span></div>`; };
     const badge = fx.stage === "group" ? "组 " + fx.group : String(fx.stage).toUpperCase();
     return `<div class="mc">
-      <div class="mc-head"><span class="badge">${esc(badge)}</span><span class="mc-date">${esc(fx.date)}</span></div>
+      <div class="mc-head"><span class="badge">${esc(badge)}</span><span class="mc-date">${fx.kickoff ? "🕒 " + esc(koTime(fx.kickoff)) : esc(fx.date)}</span></div>
       <div class="mc-teams">
         <div class="mc-team home"><span class="fn">${fx.flagH} ${esc(fx.home)}</span><span class="elo">Elo ${fx.elo_h} ${formDots(fx.form_h)}</span></div>
-        <div class="mc-pred-score">${sc(top.score)}<small>预测比分</small></div>
+        <div class="mc-pred-score">${sc(predScore(fx))}<small>最可能比分</small></div>
         <div class="mc-team away"><span class="fn">${esc(fx.away)} ${fx.flagA}</span><span class="elo">${formDots(fx.form_a)} Elo ${fx.elo_a}</span></div>
       </div>
       <div class="wdl">${seg(ph, "win", pct(ph, 0))}${seg(pdr, "draw", pct(pdr, 0))}${seg(pa, "loss", pct(pa, 0))}</div>
@@ -64,18 +90,20 @@
       <div class="scorelines">${sl}</div>
       <div class="narr">${bold(fx.narrative)}</div>
       <div class="factors">${facs}</div>
-      ${mkts}${refLine(fx.referee)}${injLine(fx.home, fx.flagH)}${injLine(fx.away, fx.flagA)}</div>`;
+      ${evList(fx)}
+      ${mkts}${climLine(fx)}${refLine(fx.referee)}${injLine(fx.home, fx.flagH)}${injLine(fx.away, fx.flagA)}</div>`;
   }
 
   /* ---------- HOME ---------- */
   function homeHTML() {
     const all = D.credibility.backtest.find(x => x.wc === "all") || {};
     const stats = [[D.meta.tournament.teams, "参赛球队"], ["104", "比赛场次"], [(D.meta.n_sims / 1000) + "k", "模拟次数"], [(all.rps_model || 0).toFixed(3), "回测 RPS · 越低越好"]];
-    const feats = [["多维数据", "Elo · 状态 · 市值 · 伤停 · 裁判"], ["统计 + ML", "Dixon-Coles 双泊松 + Elo"], ["大量模拟", "5 万次蒙特卡洛 + 多届回测"], ["实时更新", "the-odds-api 赔率对标"]];
+    const feats = [["多维数据", "Elo · 状态 · 市值 · 气候/海拔 · 伤停 · 裁判"], ["统计 + ML", "Dixon-Coles 双泊松 + Elo"], ["大量模拟", "5 万次蒙特卡洛 + 多届回测"], ["实时更新", "the-odds-api 赔率对标"]];
     return `<section class="view" id="view-home">
       <div class="hero"><div class="tag">FIFA WORLD CUP 2026 · 美国 加拿大 墨西哥</div><h1>世界杯夺冠概率预测</h1>
         <p>多维数据 + Dixon-Coles 双泊松 + 5 万次蒙特卡洛模拟。基准是<b>对标赔率的概率校准（RPS）</b>，不是「猜中率」。数据更新于 ${D.meta.asof}。</p></div>
       <div class="stats">${stats.map(([v, k]) => `<div class="stat"><div class="sv">${v}</div><div class="sk">${esc(k)}</div></div>`).join("")}</div>
+      ${liveStrip()}
       <div class="home-grid">
         <div class="col">
           <div class="panel"><div class="p-title">夺冠概率 TOP 10 <span class="more" data-go="picks">完整排名 →</span></div>
@@ -130,10 +158,39 @@
     $("#trend-legend").innerHTML = et.teams.map((t, i) => `<span><i style="background:${PAL[i % PAL.length]}"></i>${et.flags[t] || ""} ${esc(t)}</span>`).join("");
   }
 
+  /* ---------- LIVE scoreboard (model vs reality, this tournament) ---------- */
+  const OUTCOME_CN = { H: "主胜", D: "平局", A: "客胜" };
+  function liveStrip() {
+    const s = D.live_scoreboard, rows = D.live || [];
+    if (!s || !s.n) return "";
+    const cards = rows.map(r => {
+      const beat = r.rps < r.rps_uniform;
+      return `<div class="lc"><div class="lc-teams">${r.flagH} ${esc(r.home)} <span class="lc-score">${esc(r.actual)}</span> ${esc(r.away)} ${r.flagA}</div>
+        <div class="lc-pred">赛前 胜 ${pct(r.p_home, 0)} / 平 ${pct(r.p_draw, 0)} / 负 ${pct(r.p_away, 0)}</div>
+        <div class="lc-pred">模型预测比分 <b>${esc(sc(r.pred_score))}</b> · 方向 <span class="${r.fav_hit ? "hit-y" : "hit-n"}">${r.fav_hit ? "✓" : "✗"}</span> · 比分 <span class="${r.score_hit ? "hit-y" : "hit-n"}">${r.score_hit ? "✓ 中" : "✗"}</span></div>
+        <div style="margin-top:8px"><span class="lc-rps ${beat ? "rps-good" : "rps-bad"}">RPS ${r.rps.toFixed(3)} ${beat ? "↓优于基线" : "↑差于基线"}</span></div></div>`;
+    }).join("");
+    const verdict = s.beats_uniform
+      ? `模型平均 RPS <b>${s.rps_model}</b> 低于均匀基线 <b>${s.rps_uniform}</b>——目前跑赢基线`
+      : `模型平均 RPS <b>${s.rps_model}</b> 高于均匀基线 <b>${s.rps_uniform}</b>——目前落后基线`;
+    return `<div class="panel live-panel">
+      <div class="p-title">本届进行中 · 模型 vs 实际 <span class="more" data-go="schedule">完整赛程 →</span></div>
+      <div class="live-head">
+        <div class="lh-stat"><div class="v">${s.n}</div><div class="k">已赛场次</div></div>
+        <div class="lh-stat"><div class="v" style="color:var(--acc)">${s.rps_model}</div><div class="k">模型 RPS · 越低越好</div></div>
+        <div class="lh-stat"><div class="v">${s.calls_hit}/${s.n}</div><div class="k">方向（胜平负）命中</div></div>
+        <div class="lh-stat"><div class="v">${s.scores_hit != null ? s.scores_hit : "—"}/${s.n}</div><div class="k">精确比分命中</div></div>
+      </div>
+      <div class="live-grid">${cards}</div>
+      <div class="note">${verdict}。⚠️ 样本极小（${s.n} 场），只是滚动校验，统计上不能据此下任何结论——这页的意义是<b>诚实地把模型每天放到现实里对账</b>，而非自证。</div>
+    </div>`;
+  }
+
   /* ---------- SCHEDULE ---------- */
   function scheduleHTML() {
     const byDate = {};
     (D.schedule_full || []).forEach(m => (byDate[m.date] = byDate[m.date] || []).push(m));
+    Object.values(byDate).forEach(arr => arr.sort(byTime));  // chronological within each day
     const days = Object.keys(byDate).sort().map(d => {
       const rows = byDate[d].map(m => {
         const stage = m.stage === "group" ? "组 " + m.group : String(m.stage).toUpperCase();
@@ -149,18 +206,50 @@
         const hn = m.ko_slot ? `<span class="s-tbd">${esc(m.home)}</span>` : `${m.flagH} ${esc(m.home)}`;
         const an = m.ko_slot ? `<span class="s-tbd">${esc(m.away)}</span>` : `${esc(m.away)} ${m.flagA}`;
         const predTag = (m.actual && m.pred) ? `赛前 ${pct({ home: m.pred.p_home, draw: m.pred.p_draw, away: m.pred.p_away }[m.pred.pick], 0)}` : "";
-        return `<div class="srow"><div class="s-meta">${esc(stage)}<br>${esc(m.venue || "")}</div>
+        return `<div class="srow"><div class="s-meta">${esc(stage)}${m.kickoff ? `<br><b class="s-ko">🕒 ${esc(koTime(m.kickoff))}</b>` : ""}<br>${esc(m.venue || "")}</div>
           <div class="s-teams"><span class="s-h">${hn}</span>${mid}<span class="s-a">${an}</span></div>
           <div class="s-pred-tag">${predTag}</div><div>${tag}</div></div>`;
       }).join("");
       return `<div class="sched-day"><div class="sched-date">${esc(d)}</div>${rows}</div>`;
     }).join("");
-    return `<section class="view" id="view-schedule"><div class="vhead"><h1>赛程</h1><span class="sub">全部 104 场。已赛显示<b>真实比分</b>与模型赛前预测是否命中；未赛显示<b>预测比分</b>。模型随每轮结果用 Elo 动态更新。</span></div>${days}</section>`;
+    const koN = (D.schedule_full || []).filter(m => m.kickoff).length;
+    return `<section class="view" id="view-schedule"><div class="vhead"><h1>赛程</h1><span class="sub">全部 104 场。已赛显示<b>真实比分</b>与模型赛前预测是否命中；未赛显示<b>预测比分</b>。🕒 开球时间已按<b>你所在时区${TZ ? "（" + esc(TZ) + "）" : ""}</b>换算（已录入 ${koN} 场，其余陆续补全）。</span></div>${days}</section>`;
+  }
+
+  /* ---------- BRACKET (projected knockout tree) ---------- */
+  const RNAME = { r32: "32 强", r16: "16 强", qf: "8 强", sf: "4 强", final: "决赛", third: "季军赛" };
+  function bkTeam(name, fl, p, win, actual) {
+    const tbd = !name;
+    const right = actual != null ? (win ? "✓" : "") : (p != null ? pct(p, 0) : "");
+    return `<div class="bk-team ${win ? "bk-win" : ""} ${tbd ? "bk-tbd" : ""}">
+      <span class="bf">${fl || ""}</span><span class="bn">${esc(name || "待定")}</span><span class="bp">${right}</span></div>`;
+  }
+  function bkMatch(m) {
+    const hw = m.p_home_adv != null && m.p_home_adv >= (m.p_away_adv ?? 0);
+    const aw = m.p_away_adv != null && !hw;
+    const tag = m.actual ? `<div class="bk-sc">${esc(m.actual)}</div>` : "";
+    return `<div class="bk-match">${bkTeam(m.home, m.flagH, m.p_home_adv, hw, m.actual)}${bkTeam(m.away, m.flagA, m.p_away_adv, aw, m.actual)}${tag}</div>`;
+  }
+  function bracketHTML() {
+    const b = D.bracket;
+    if (!b || !b.rounds || !b.rounds.length) return `<section class="view" id="view-bracket"><div class="vhead"><h1>晋级树</h1></div><p class="dim">暂无淘汰赛投影数据。</p></section>`;
+    const cols = b.rounds.filter(r => r.stage !== "third").map(r =>
+      `<div class="bk-round"><div class="bk-round-h">${RNAME[r.stage] || r.stage}</div><div class="bk-matches">${r.matches.map(bkMatch).join("")}</div></div>`).join("");
+    const champ = b.projected_champion;
+    const champBox = champ ? `<div class="bk-round bk-champ-col"><div class="bk-round-h">投影冠军</div><div class="bk-matches"><div class="bk-champ">🏆<div class="bc-fl">${esc((D.leaderboard.find(t => t.team === champ) || {}).flag || "")}</div><div class="bc-nm">${esc(champ)}</div></div></div></div>` : "";
+    const third = (b.rounds.find(r => r.stage === "third") || {}).matches || [];
+    const thirdBox = third.length ? `<div class="panel sec-block" style="margin-top:18px;max-width:420px"><div class="mini-title">${RNAME.third}</div>${bkMatch(third[0])}</div>` : "";
+    return `<section class="view" id="view-bracket"><div class="vhead"><h1>晋级树 · 模型投影路径</h1>
+      <span class="sub">每个空位由模型<b>最可能的占位球队</b>填充（小组名次按 P(第1/2名)、最佳第三按 P(以第三名出线)），再让<b>赛前favorite逐轮晋级</b>。淘汰赛胜率含加时(1/3 进球率)+点球 50/50，与模拟一致。</span></div>
+      <div class="banner">这是「<b>每场取最可能结果</b>」的投影路径，<b>不等于「最可能的整张签表」</b>，更不是各队夺冠概率（夺冠概率来自 5 万次完整模拟，见首页/最佳选择）。世界杯 64 场全中的概率约 10⁻³⁰——投影是给你一条「最不意外」的脉络，不是预言。</div>
+      <div class="bracket">${cols}${champBox}</div>${thirdBox}</section>`;
   }
 
   /* ---------- MATCHES ---------- */
   function matchesHTML() {
-    return `<section class="view" id="view-matches"><div class="vhead"><h1>比赛预测</h1><span class="sub">每场预测比分 / 胜平负 / 判断依据 / 盘口 / 裁判 / 伤停</span></div><div class="filters" id="match-filters"></div><div class="match-grid" id="match-grid"></div></section>`;
+    return `<section class="view" id="view-matches"><div class="vhead"><h1>比赛预测</h1><span class="sub">每场：胜平负 / 最可能比分 / 判断依据（含历史交手）/ 盘口 / 裁判 / 伤停</span></div>
+      <div class="banner" style="border-left-color:var(--acc)">💡 <b>为什么比分都偏小？</b> 足球进球服从泊松分布——即便强队，<b>单一最可能的精确比分</b>通常也只是 1–0、2–0、2–1（没有哪个大比分能单独成为最大概率）。强弱要看<b>预期进球</b>（如 2.8–0.4）与<b>胜率</b>，而非那一个小比分；想覆盖更多比分见「赔率与买入」的<b>比分篮子</b>。</div>
+      <div class="filters" id="match-filters"></div><div class="match-grid" id="match-grid"></div></section>`;
   }
   function matchesPost() {
     const dates = [...new Set(upcoming().map(f => f.date))].sort();
@@ -209,28 +298,43 @@
   }
 
   /* ---------- BET (odds compare + recommendations + combo) ---------- */
+  function betSmartCard(fx) {
+    const s = fx.smart_bets; if (!s) return "";
+    const evtag = e => e == null ? "" : `<span class="${e >= 0 ? "edge-pos" : "edge-neg"}">EV ${e >= 0 ? "+" : ""}${(100 * e).toFixed(0)}%</span>`;
+    const src = b => b ? `<span class="src live">实时</span>` : `<span class="src">模型公允</span>`;
+    const add = (id, label, p, odds) => `<button class="add-leg" data-id="${esc(id)}" data-match="${esc(fx.home)}|${esc(fx.away)}" data-label="${esc(label)}" data-p="${p}" data-odds="${odds}">＋ 串</button>`;
+    const mm = `${esc(fx.home)} vs ${esc(fx.away)}`;
+    const rows = [];
+    if (s.safest) { const x = s.safest;
+      rows.push(`<div class="sb-play"><span class="sbk safe">最稳</span><span class="sbsel"><b>${esc(x.sel)}</b> <span class="dim">${esc(x.market)}</span></span><span class="sbp">命中 <b>${pct(x.p, 0)}</b></span><span class="sbo">赔 ${x.odds} ${evtag(x.ev)} ${src(x.book)}</span>${add("sb-s-" + fx.home + fx.away, mm + " · " + x.sel, x.p, x.odds)}</div>`); }
+    if (s.value) { const x = s.value;
+      rows.push(`<div class="sb-play"><span class="sbk val">最值</span><span class="sbsel"><b>${esc(x.sel)}</b> <span class="dim">${esc(x.market)}</span></span><span class="sbp">命中 ${pct(x.p, 0)}</span><span class="sbo">赔 ${x.odds} ${evtag(x.ev)}</span>${add("sb-v-" + fx.home + fx.away, mm + " · " + x.sel, x.p, x.odds)}</div>`); }
+    else rows.push(`<div class="sb-play"><span class="sbk val">最值</span><span class="dim" style="flex:1">暂无书面盘口的正 EV 选项（仅 1X2 / 大小2.5 有实时赔率）</span></div>`);
+    if (s.basket) { const b = s.basket;
+      rows.push(`<div class="sb-play"><span class="sbk bask">比分篮子</span><span class="sbsel">${b.scores.map(x => `<i class="cs-chip">${esc(sc(x))}</i>`).join("")}</span><span class="sbp">命中 ~<b>${pct(b.hit, 0)}</b></span><span class="sbo">公允赔率 ${b.fair} · EV≈0%</span></div>`); }
+    if (s.combo) { const c = s.combo;
+      rows.push(`<div class="sb-play"><span class="sbk combo">组合</span><span class="sbsel"><b>${c.legs.map(esc).join(" + ")}</b></span><span class="sbp">命中 <b>${pct(c.p, 0)}</b></span><span class="sbo">赔 ${c.odds} ${evtag(c.ev)} ${src(c.book)}</span>${add("sb-c-" + fx.home + fx.away, mm + " · " + c.legs.join("+"), c.p, c.odds)}</div>`); }
+    return `<div class="sb-card"><div class="sb-head">${fx.flagH} ${esc(fx.home)} <span class="dim">vs</span> ${esc(fx.away)} ${fx.flagA} <span class="dim">${esc(fx.date.slice(5))}</span></div>${rows.join("")}</div>`;
+  }
   function betHTML() {
     const recs = (D.betting && D.betting.recommendations) || [];
     const recRows = recs.map(v => `<tr class="rec-row"><td class="l">${esc(v.pick)}</td><td>${pct(v.model_p, 0)}</td><td>${v.odds}</td><td class="edge-pos">+${v.ev_pct.toFixed(0)}%</td><td class="stk">${v.stake}</td><td>${v.exp_return >= 0 ? "+" : ""}${v.exp_return}</td>
       <td><button class="add-leg" data-id="rec-${esc(v.home)}-${esc(v.side)}" data-match="${esc(v.home)}|${esc(v.away)}" data-label="${esc(v.pick)}" data-p="${v.model_p}" data-odds="${v.odds}">＋</button></td></tr>`).join("");
-    const sel = upcoming().slice(0, 12).filter(f => (f.odds_compare || []).length).map(fx => {
-      const rows = (fx.odds_compare || []).filter(r => r.market === "胜平负").map(r => {
-        const id = `${fx.home}-${fx.away}-${r.sel}`;
-        return `<tr><td class="l">${esc(r.sel)}</td><td>${pct(r.model_p, 0)}</td><td>${r.book}</td><td class="${r.edge > 0.02 ? "edge-pos" : r.edge < -0.02 ? "edge-neg" : ""}">${r.edge > 0 ? "+" : ""}${(100 * r.edge).toFixed(0)}%</td>
-          <td><button class="add-leg" data-id="${esc(id)}" data-match="${esc(fx.home)}|${esc(fx.away)}" data-label="${esc(fx.home)} vs ${esc(fx.away)} · ${esc(r.sel)}" data-p="${r.model_p}" data-odds="${r.book}">＋</button></td></tr>`; }).join("");
-      return `<tr class="grp"><td class="l" colspan="5">${fx.flagH} ${esc(fx.home)} vs ${esc(fx.away)} ${fx.flagA} · ${esc(fx.date.slice(5))}</td></tr>${rows}`;
-    }).join("");
-    return `<section class="view" id="view-bet"><div class="vhead"><h1>赔率与买入</h1><span class="sub">模型概率 vs the-odds-api 实时赔率 · 买入建议与预期收益 · 串关计算器</span></div>
-      <div class="banner"><b>⚠️ 诚实声明：</b>下面的 EV / 预期收益是<b>模型视角</b>的名义值。历史下注回测证明模型<b>跑不赢闭线</b>(「数据分析」页可查),所谓「价值」多为噪声;<b>串关只会把每注抽水相乘——是「方差最大化」不是「收益最大化」</b>。此页供研究,非投注建议。</div>
-      <div class="bet-grid">
-        <div>
-          <div class="panel sec-block"><div class="mini-title">买入建议（模型正 EV，按 ¼ Kelly，本金 1000）</div>
-            <table class="vt"><thead><tr><th class="l">比赛 · 选项</th><th>模型</th><th>赔率</th><th>EV</th><th>注额</th><th>预期</th><th></th></tr></thead><tbody>${recRows || "<tr><td class='l dim'>暂无</td></tr>"}</tbody></table></div>
-          <div class="panel"><div class="mini-title">从近期比赛挑选（加入串关）</div>
-            <table class="oc-table"><thead><tr><th class="l">选项</th><th>模型</th><th>实时赔率</th><th>EV</th><th></th></tr></thead><tbody>${sel}</tbody></table></div>
+    const smartCards = upcoming().filter(f => f.smart_bets).map(betSmartCard).join("");
+    return `<section class="view" id="view-bet"><div class="vhead"><h1>赔率与买入</h1><span class="sub">每场的最优玩法（模型 + 实时赔率）· 串关计算器</span></div>
+      <div class="banner"><b>⚠️ 诚实声明：</b>EV / 预期收益是<b>模型视角</b>的名义值。历史下注回测证明模型<b>跑不赢闭线</b>(见「数据分析」),所谓「价值」多为噪声;<b>串关只会把每注抽水相乘——是「方差最大化」不是「收益最大化」</b>。此页供研究,非投注建议。</div>
+      <div class="panel sec-block"><div class="mini-title">每场最优玩法</div>
+        <div class="note" style="margin-bottom:13px;line-height:1.7">
+          <b>四种玩法：</b>「最稳」= 命中率最高的单选；「最值」= <b>预期收益(EV)最高</b>的单选（仅 1X2 与大小2.5 有实时赔率，故只有这两类能算出真实 EV）；「比分篮子」= 覆盖 ≥50% 概率的几个比分一起买；「组合」= 同场两个条件须<b>同时成立</b>，联合命中率由比分网格<b>精确计算</b>（非独立相乘，已计入相关性）。<br>
+          <b>盘口含义：</b>「大 2.5」= 全场总进球 ≥3；「小 2.5」= 总进球 ≤2；「双重机会·平或客胜」= 客队不输（平/客胜都算赢）；「亚盘 主 -1.5」= 主队需净胜 2 球+。<br>
+          <b>预期收益 EV = 模型概率 × 赔率 − 1：</b>正数 = 模型认为划算、负数 = 吃亏；标「模型公允」者无实时盘口、按公允赔率定价，故 EV≈0（无套利空间，仅供参考命中率）。
         </div>
+        <div class="sb-grid">${smartCards || "<p class='dim'>暂无可下注的近期比赛</p>"}</div></div>
+      <div class="bet-grid">
+        <div class="panel sec-block"><div class="mini-title">模型正 EV 买入建议（¼ Kelly，本金 1000）</div>
+          <table class="vt"><thead><tr><th class="l">比赛 · 选项</th><th>模型</th><th>赔率</th><th>EV</th><th>注额</th><th>预期</th><th></th></tr></thead><tbody>${recRows || "<tr><td class='l dim'>暂无</td></tr>"}</tbody></table></div>
         <div class="panel slip"><div class="mini-title">🧾 串关计算器</div>
-          <div id="slip-legs"><p class="dim" style="font-size:12px">点 ＋ 添加投注项，看组合赔率、模型胜率与 EV 如何变化。</p></div>
+          <div id="slip-legs"><p class="dim" style="font-size:12px">从上面点「＋ 串」添加投注项，看组合赔率、模型胜率与 EV 如何变化。</p></div>
           <div class="combo-input">本金 <input id="combo-stake" type="number" value="10" min="1"> 元</div>
           <div class="slip-foot" id="slip-stats"></div>
         </div>
@@ -288,6 +392,7 @@
       <li><b>Elo</b>：eloratings.net 公式自算，全史单遍递推，只用赛前评分（无泄漏，随每轮结果动态更新）。</li>
       <li><b>比分模型</b>：λ = exp(b0 ± b1·ΔElo/400 + 主场)，Dixon-Coles ρ 修正 + 指数时间衰减 MLE。</li>
       <li><b>多维</b>：Elo + 阵容市值融合 + 伤停/裁判定性层。</li>
+      <li><b>2026 气候/海拔</b>：按场馆海拔（墨西哥城 2240m、瓜达拉哈拉 1566m）与高温湿热，对不适应的客队做<b>小幅 Elo 修正</b>（海拔参考 McSharry 2007；有顶棚/空调球场打折）。<b>仅作用于 2026 赛程，不触碰历史训练与回测/校准</b>——属透明先验，非拟合参数。</li>
       <li><b>模拟</b>：FIFA tiebreakers + 8 best thirds + 淘汰赛 × ${D.meta.n_sims.toLocaleString()}。</li>
       <li><b>派生盘口</b>：大小球/双方进球/亚盘/正确比分均由比分网格解析。</li></ul></div>`;
     return `<section class="view" id="view-analytics"><div class="vhead"><h1>数据分析</h1><span class="sub">回测 · 概率校准 · 市场对标 · 下注回测（诚实版）</span></div>
@@ -317,7 +422,7 @@
   }
   function init() {
     chrome();
-    $("#main").innerHTML = [homeHTML(), scheduleHTML(), matchesHTML(), scoreHTML(), picksHTML(), betHTML(), groupsHTML(), analyticsHTML()].join("");
+    $("#main").innerHTML = [homeHTML(), scheduleHTML(), bracketHTML(), matchesHTML(), scoreHTML(), picksHTML(), betHTML(), groupsHTML(), analyticsHTML()].join("");
     Object.values(POST).forEach(f => { try { f(); } catch (e) { console.error(e); } });
     document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) location.hash = g.dataset.go; });
     window.addEventListener("hashchange", () => setView(location.hash.slice(1)));

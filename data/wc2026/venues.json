@@ -1,0 +1,21 @@
+{
+  "_note": "2026 host venues. altitude_m = stadium elevation; temp_c = climatological mean daily high for mid-June–mid-July (approximate normals); humid = high relative humidity typical; roof = fixed/retractable roof or major canopy that allows climate control / shade (mitigates heat). Used only for the 2026 climate-adaptation layer; never touches historical training/backtest. Sources: stadium elevation data + NOAA/Environment-Canada/CONAGUA climatological normals.",
+  "by_city": {
+    "Mexico City":    {"stadium": "Estadio Azteca",      "country": "Mexico",        "altitude_m": 2240, "temp_c": 24, "humid": false, "roof": false},
+    "Zapopan":        {"stadium": "Estadio Akron",       "country": "Mexico",        "altitude_m": 1566, "temp_c": 28, "humid": false, "roof": false},
+    "Guadalupe":      {"stadium": "Estadio BBVA",        "country": "Mexico",        "altitude_m": 500,  "temp_c": 35, "humid": false, "roof": false},
+    "Arlington":      {"stadium": "AT&T Stadium",        "country": "United States", "altitude_m": 180,  "temp_c": 35, "humid": false, "roof": true},
+    "Atlanta":        {"stadium": "Mercedes-Benz",       "country": "United States", "altitude_m": 320,  "temp_c": 31, "humid": true,  "roof": true},
+    "Houston":        {"stadium": "NRG Stadium",         "country": "United States", "altitude_m": 15,   "temp_c": 34, "humid": true,  "roof": true},
+    "Inglewood":      {"stadium": "SoFi Stadium",        "country": "United States", "altitude_m": 30,   "temp_c": 24, "humid": false, "roof": true},
+    "Kansas City":    {"stadium": "Arrowhead",           "country": "United States", "altitude_m": 270,  "temp_c": 31, "humid": true,  "roof": false},
+    "Miami Gardens":  {"stadium": "Hard Rock",           "country": "United States", "altitude_m": 2,    "temp_c": 32, "humid": true,  "roof": false},
+    "East Rutherford":{"stadium": "MetLife (Final)",     "country": "United States", "altitude_m": 5,    "temp_c": 29, "humid": true,  "roof": false},
+    "Philadelphia":   {"stadium": "Lincoln Financial",   "country": "United States", "altitude_m": 12,   "temp_c": 30, "humid": true,  "roof": false},
+    "Foxborough":     {"stadium": "Gillette",            "country": "United States", "altitude_m": 30,   "temp_c": 27, "humid": true,  "roof": false},
+    "Santa Clara":    {"stadium": "Levi's",              "country": "United States", "altitude_m": 5,    "temp_c": 27, "humid": false, "roof": false},
+    "Seattle":        {"stadium": "Lumen Field",         "country": "United States", "altitude_m": 50,   "temp_c": 24, "humid": false, "roof": false},
+    "Toronto":        {"stadium": "BMO Field",           "country": "Canada",        "altitude_m": 76,   "temp_c": 26, "humid": true,  "roof": false},
+    "Vancouver":      {"stadium": "BC Place",            "country": "Canada",        "altitude_m": 3,    "temp_c": 22, "humid": false, "roof": true}
+  }
+}

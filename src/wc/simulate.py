@@ -24,21 +24,24 @@ _RE_WL = re.compile(r"^([WL]):?(\d+)$")
 
 
 class Simulator:
-    def __init__(self, schedule, groups, fmt, ratings, params, seed=42):
+    def __init__(self, schedule, groups, fmt, ratings, params, seed=42, climate=None):
         self.groups = groups
         self.fmt = fmt or {}
         self.ratings = ratings
         self.params = params
+        self.climate = climate  # optional 2026 venue/altitude adaptation layer
         self.rng = np.random.default_rng(seed)
         self._cache = {}
 
-        self.group_matches = []  # (group, home, away, venue_country, played, hs, as_)
+        # (group, home, away, venue_country, venue_city, played, hs, as_)
+        self.group_matches = []
         self.ko_template = []    # dicts sorted by round then match number
         for m in schedule:
             if m["stage"] == "group":
                 played = m.get("status") == "played" and m.get("home_score") is not None
                 self.group_matches.append((
                     m["group"], m["home"], m["away"], m.get("venue_country", ""),
+                    m.get("venue_city", ""),
                     played,
                     int(m["home_score"]) if played else -1,
                     int(m["away_score"]) if played else -1,
@@ -71,11 +74,14 @@ class Simulator:
                              for key, v in combos.items()}
 
     # ---- match sampling -------------------------------------------------
-    def _grid(self, a, b, home_flag):
-        key = (a, b, home_flag)
+    def _grid(self, a, b, home_flag, da=0.0, db=0.0):
+        # da/db are climate-adaptation Elo deltas for the first/second side;
+        # both 0 (no climate) -> identical grids and RNG stream as before.
+        key = (a, b, home_flag, da, db)
         if key not in self._cache:
             m, lh, la = model.score_matrix(
-                self.ratings[a], self.ratings[b], self.params, home=float(home_flag))
+                self.ratings[a] + da, self.ratings[b] + db, self.params,
+                home=float(home_flag))
             self._cache[key] = (m.ravel().cumsum(), m.shape[0], lh, la)
         return self._cache[key]
 
@@ -86,18 +92,28 @@ class Simulator:
         flag = 1 if (home in HOSTS and home == venue_country) else 0
         return home, away, flag, False
 
-    def sample_match(self, home, away, venue_country):
+    def _clim(self, first, second, swapped, venue_city):
+        """Climate Elo deltas oriented to (_grid's first, second). 0 if off."""
+        if not self.climate or not venue_city:
+            return 0.0, 0.0
+        home, away = (second, first) if swapped else (first, second)
+        dh, da = self.climate.match_delta(home, away, venue_city)
+        return (da, dh) if swapped else (dh, da)  # -> (first, second)
+
+    def sample_match(self, home, away, venue_country, venue_city=""):
         a, b, flag, swapped = self._oriented(home, away, venue_country)
-        cum, n, _, _ = self._grid(a, b, flag)
+        da, db = self._clim(a, b, swapped, venue_city)
+        cum, n, _, _ = self._grid(a, b, flag, da, db)
         idx = int(np.searchsorted(cum, self.rng.random(), side="right"))
         idx = min(idx, n * n - 1)
         ga_, gb_ = idx // n, idx % n
         return (gb_, ga_) if swapped else (ga_, gb_)
 
-    def play_knockout(self, home, away, venue_country):
+    def play_knockout(self, home, away, venue_country, venue_city=""):
         """Returns (winner, loser)."""
         a, b, flag, swapped = self._oriented(home, away, venue_country)
-        cum, n, lh, la = self._grid(a, b, flag)
+        da, db = self._clim(a, b, swapped, venue_city)
+        cum, n, lh, la = self._grid(a, b, flag, da, db)
         idx = int(np.searchsorted(cum, self.rng.random(), side="right"))
         idx = min(idx, n * n - 1)
         ga_, gb_ = idx // n, idx % n
@@ -194,11 +210,11 @@ class Simulator:
     def simulate_once(self):
         group_results = defaultdict(list)
         venue_of = {}
-        for g, h, a, vc, played, hs, as_ in self.group_matches:
+        for g, h, a, vc, vcity, played, hs, as_ in self.group_matches:
             if played:
                 group_results[g].append((h, a, hs, as_))
             else:
-                gh, ga_ = self.sample_match(h, a, vc)
+                gh, ga_ = self.sample_match(h, a, vc, vcity)
                 group_results[g].append((h, a, gh, ga_))
 
         pos = {}      # (rank, letter) -> team
@@ -255,11 +271,13 @@ class Simulator:
                 elif win in (h, a):  # decided in ET/pens, recorded by validator
                     w, l = (win, a if win == h else h)
                 else:
-                    w, l = self.play_knockout(h, a, m.get("venue_country", ""))
+                    w, l = self.play_knockout(h, a, m.get("venue_country", ""),
+                                              m.get("venue_city", ""))
             else:
                 h = resolve(m["home"], n)
                 a = resolve(m["away"], n)
-                w, l = self.play_knockout(h, a, m.get("venue_country", ""))
+                w, l = self.play_knockout(h, a, m.get("venue_country", ""),
+                                          m.get("venue_city", ""))
             ko_result[n] = (w, l)
             stage = m["stage"]
             if stage in reached:
@@ -303,9 +321,14 @@ class Simulator:
         return df.reset_index(drop=True)
 
 
-def predict_fixtures(schedule, ratings, params, start, end):
+def predict_fixtures(schedule, ratings, params, start, end, climate=None, prematch=None):
     """Model-level (not simulation) predictions for named fixtures in a
-    date window: 1X2 probabilities, expected goals, top scorelines."""
+    date window: 1X2 probabilities, expected goals, top scorelines.
+
+    `climate` (optional) applies the 2026 venue/altitude adaptation Elo nudge
+    to the goal model for that fixture; the displayed elo_h/elo_a stay the
+    team's base global rating, with the adjustment exposed separately under
+    the `climate` key so the UI can show it as its own factor."""
     rows = []
     start, end = pd.Timestamp(start), pd.Timestamp(end)
     for m in schedule:
@@ -315,26 +338,38 @@ def predict_fixtures(schedule, ratings, params, start, end):
         h, a = str(m["home"]), str(m["away"])
         if h not in ratings or a not in ratings:
             continue
+        # For already-played matches, predict with the teams' *pre-match*
+        # ratings (out-of-sample, no leakage) so the "model vs reality" check
+        # is honest; upcoming matches use current ratings. `prematch` is keyed
+        # by (home, away, date) -> (rating_home, rating_away).
+        rh, ra = ratings[h], ratings[a]
+        if prematch:
+            rh, ra = prematch.get((h, a, str(m["date"])), (rh, ra))
         vc = m.get("venue_country", "")
+        vcity = m.get("venue_city", "")
+        dh, da = climate.match_delta(h, a, vcity) if climate else (0.0, 0.0)
         if a in HOSTS and a == vc:
             grid, la_, lh_ = model.score_matrix(
-                ratings[a], ratings[h], params, home=1.0)
+                ra + da, rh + dh, params, home=1.0)
             grid = grid.T
             lh, la = lh_, la_
         else:
             flag = 1.0 if (h in HOSTS and h == vc) else 0.0
-            grid, lh, la = model.score_matrix(ratings[h], ratings[a], params, home=flag)
+            grid, lh, la = model.score_matrix(
+                rh + dh, ra + da, params, home=flag)
         pw, pd_, pl = model.wdl(grid)
         top = model.top_scores(grid, 5)
         rows.append({
-            "n": m.get("n"), "date": m["date"], "stage": m["stage"],
-            "group": m.get("group"), "home": h, "away": a,
+            "n": m.get("n"), "date": m["date"], "kickoff": m.get("kickoff"),
+            "stage": m["stage"], "group": m.get("group"), "home": h, "away": a,
             "status": m.get("status"),
+            "venue_country": vc, "venue_city": vcity,
             "home_score": m.get("home_score"), "away_score": m.get("away_score"),
-            "elo_h": round(ratings[h], 1), "elo_a": round(ratings[a], 1),
+            "elo_h": round(rh, 1), "elo_a": round(ra, 1),
             "lambda_h": round(lh, 3), "lambda_a": round(la, 3),
             "p_home": round(pw, 4), "p_draw": round(pd_, 4), "p_away": round(pl, 4),
             "top_scores": "; ".join(f"{i}-{j} {p:.1%}" for i, j, p in top),
             "markets": markets.all_markets(grid),
+            "climate": climate.context(h, a, vcity) if climate else None,
         })
     return pd.DataFrame(rows)
