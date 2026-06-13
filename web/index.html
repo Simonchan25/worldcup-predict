@@ -23,9 +23,11 @@
 <nav class="tabs" id="tabs">
   <a href="#champ" class="tab active">🏆 夺冠预测</a>
   <a href="#matches" class="tab">⚽ 比赛预测</a>
+  <a href="#betting" class="tab">💰 赔率与价值</a>
   <a href="#groups" class="tab">📊 小组形势</a>
   <a href="#live" class="tab">🔴 本届实测</a>
   <a href="#cred" class="tab">🔬 模型可信度</a>
+  <a href="#mirror" class="tab">🔮 照妖镜</a>
 </nav>
 
 <main>
@@ -43,6 +45,22 @@
     <h2 class="sec-title">比赛预测 <span class="sec-sub">每场的胜平负、比分与判断依据</span></h2>
     <div class="filters" id="match-filters"></div>
     <div id="match-grid" class="match-grid"></div>
+  </section>
+
+  <section id="betting" class="sec">
+    <h2 class="sec-title">赔率与价值 <span class="sec-sub">「怎么下注收益最大」的诚实答案</span></h2>
+    <p class="sec-lead" id="betting-lead"></p>
+    <div class="bet-cols">
+      <div class="card bet-card">
+        <h3 class="mini-title">模型识别的「正 EV」边 <span class="dim">（模型概率 × 赔率 − 1 > 0）</span></h3>
+        <div id="value-table"></div>
+      </div>
+      <div class="card bet-card">
+        <h3 class="mini-title">⚠️ 历史回测：这些边能赚钱吗？</h3>
+        <div id="bet-backtest"></div>
+        <div id="bet-verdict" class="verdict"></div>
+      </div>
+    </div>
   </section>
 
   <section id="groups" class="sec">
@@ -66,6 +84,13 @@
       <div class="card cred-card" id="mb-card"><h3 class="mini-title">市场对标回测 <span class="dim">（能否跑赢赔率）</span></h3><div id="mb-body"></div></div>
     </div>
     <div class="method card" id="method"></div>
+  </section>
+
+  <section id="mirror" class="sec">
+    <h2 class="sec-title">「经济学家预测世界杯全对」？照妖镜 <span class="sec-sub">名人预测的真相与可借鉴之处</span></h2>
+    <p class="sec-lead" id="mirror-lesson"></p>
+    <div id="mirror-grid" class="mirror-grid"></div>
+    <div class="card crosscheck" id="crosscheck"></div>
   </section>
 </main>
 

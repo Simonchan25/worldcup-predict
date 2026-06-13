@@ -1,0 +1,186 @@
+{
+ "by_team": {
+  "Brazil": [
+   {
+    "player": "Rodrygo",
+    "status": "out",
+    "note": "Torn ACL and meniscus in March while at Real Madrid; ruled out of the tournament."
+   },
+   {
+    "player": "Neymar",
+    "status": "doubtful",
+    "note": "Grade-two right calf strain; ruled out of the June 13 opener vs Morocco and likely the gro"
+   },
+   {
+    "player": "Estevao",
+    "status": "out",
+    "note": "Teenage Chelsea winger suffered a torn hamstring in April; left off the squad."
+   },
+   {
+    "player": "Eder Militao",
+    "status": "out",
+    "note": "Real Madrid defender out after thigh/hamstring surgery in April."
+   }
+  ],
+  "Netherlands": [
+   {
+    "player": "Xavi Simons",
+    "status": "out",
+    "note": "Tore his ACL in late April; ruled out of the World Cup."
+   },
+   {
+    "player": "Jurrien Timber",
+    "status": "out",
+    "note": "Groin injury, failed recovery; replaced by Lutsharel Geertruida."
+   },
+   {
+    "player": "Matthijs de Ligt",
+    "status": "out",
+    "note": "Long-standing back issue requiring additional surgery; ruled out."
+   }
+  ],
+  "Germany": [
+   {
+    "player": "Marc-Andre ter Stegen",
+    "status": "out",
+    "note": "Torn thigh muscle; out, prompting a recall of veteran keeper Manuel Neuer."
+   },
+   {
+    "player": "Serge Gnabry",
+    "status": "out",
+    "note": "Bayern winger out with a torn adductor sustained in training in April."
+   }
+  ],
+  "France": [
+   {
+    "player": "Hugo Ekitike",
+    "status": "out",
+    "note": "Liverpool forward ruptured his Achilles tendon in April."
+   }
+  ],
+  "Spain": [
+   {
+    "player": "Fermin Lopez",
+    "status": "out",
+    "note": "Barcelona midfielder fractured the fifth metatarsal in his right foot, requiring surgery."
+   },
+   {
+    "player": "Lamine Yamal",
+    "status": "doubtful",
+    "note": "Partially torn hamstring; in the squad and expected fit around June 15 but not yet confirm"
+   },
+   {
+    "player": "Mikel Merino",
+    "status": "doubtful",
+    "note": "Lingering foot stress fracture since February; fitness uncertain."
+   }
+  ],
+  "Japan": [
+   {
+    "player": "Kaoru Mitoma",
+    "status": "out",
+    "note": "Brighton winger out with a torn hamstring deemed unlikely to recover in time."
+   },
+   {
+    "player": "Takumi Minamino",
+    "status": "out",
+    "note": "Torn ACL in December; failed comeback bid, ruled out."
+   }
+  ],
+  "United States": [
+   {
+    "player": "Johnny Cardoso",
+    "status": "out",
+    "note": "Atletico Madrid midfielder out after ankle surgery in May (high-grade sprain)."
+   },
+   {
+    "player": "Patrick Agyemang",
+    "status": "out",
+    "note": "Ruptured his Achilles tendon in April; ruled out."
+   }
+  ],
+  "Canada": [
+   {
+    "player": "Alphonso Davies",
+    "status": "doubtful",
+    "note": "Bayern fullback recovering from a 2025 ACL tear plus a hamstring issue; ruled out of the o"
+   }
+  ],
+  "Mexico": [
+   {
+    "player": "Luis Angel Malagon",
+    "status": "out",
+    "note": "Club America goalkeeper ruptured his Achilles tendon; ruled out."
+   }
+  ],
+  "Scotland": [
+   {
+    "player": "Billy Gilmour",
+    "status": "out",
+    "note": "Napoli midfielder suffered a knee injury in a warm-up match; ruled out."
+   }
+  ],
+  "Croatia": [
+   {
+    "player": "Luka Modric",
+    "status": "doubtful",
+    "note": "Recovering from a cheekbone fracture; expected to heal in time but a fitness watch."
+   }
+  ],
+  "Uruguay": [
+   {
+    "player": "Jose Gimenez",
+    "status": "doubtful",
+    "note": "Severe ankle sprain sustained in May; fitness uncertain."
+   }
+  ],
+  "Ghana": [
+   {
+    "player": "Mohammed Kudus",
+    "status": "doubtful",
+    "note": "Hamstring/quadriceps setback; in doubt for the early matches."
+   }
+  ],
+  "Argentina": [
+   {
+    "player": "Nicolas Otamendi",
+    "status": "suspended",
+    "note": "Carries a red-card suspension from qualifying; will miss at least Argentina's first group "
+   }
+  ],
+  "Ecuador": [
+   {
+    "player": "Moises Caicedo",
+    "status": "suspended",
+    "note": "Red card in qualifying carries over; suspended for the early stage of the tournament."
+   }
+  ],
+  "Qatar": [
+   {
+    "player": "Tarek Salman",
+    "status": "suspended",
+    "note": "Sent off in Asian qualifying; suspension carries into the group stage."
+   }
+  ],
+  "Portugal": [
+   {
+    "player": "Cristiano Ronaldo",
+    "status": "doubtful",
+    "note": "Faced a three-game ban for violent conduct (elbow), but FIFA suspended two-thirds under pr"
+   }
+  ]
+ },
+ "sources": [
+  "https://www.espn.com/soccer/story/_/id/48572979/2026-fifa-world-cup-injuries-tracker-which-stars-miss-latest-info",
+  "https://www.goal.com/en-us/lists/biggest-stars-miss-2026-world-cup-injury-suspension-selection/bltd6ff2d56ebf99a62",
+  "https://www.si.com/soccer/2026-world-cup-biggest-star-players-ruled-out-injury",
+  "https://www.si.com/soccer/netherlands-key-player-ruled-out-2026-world-cup-injury",
+  "https://www.aljazeera.com/sports/2026/5/28/neymar-out-of-brazil-world-cup-opener-due-to-calf-injury",
+  "https://www.si.com/soccer/neymar-injury-timeline-brazil-matches-miss-2026-world-cup",
+  "https://thesportscast.net/2025/11/25/which-players-are-suspended-for-the-2026-fifa-world-cup-due-to-red-or-yellow-cards/",
+  "https://www.si.com/soccer/cristiano-ronaldo-world-cup-reprieve-creates-risk-legal-action",
+  "https://worldsoccertalk.com/amp/world-cup/good-news-for-argentina-as-julian-alvarez-and-cristian-romero-recover-from-injuries-for-2026-world-cup/",
+  "https://bleacherreport.com/articles/25437927-world-cup-2026-starting-lineups-notable-injury-news-and-potential-replacements"
+ ],
+ "asof": "2026-06-13"
+}

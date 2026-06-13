@@ -8,7 +8,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from wc import backtest, market, model  # noqa: E402
+from wc import backtest, market, markets, model  # noqa: E402
 from wc.simulate import Simulator  # noqa: E402
 
 PARAMS = [0.26, 0.9, 0.2, -0.05]
@@ -53,6 +53,27 @@ def check_market():
     assert not market.valid_1x2(1.06, 2.47, 6)        # short draw + broken book
     assert market.valid_1x2(1.5, 3.2, 9.0)            # high margin but valid shape
     print("ok market")
+
+
+def check_markets():
+    m, _, _ = model.score_matrix(1900, 1600, PARAMS, home=1.0)  # home favourite
+    mk = markets.all_markets(m)
+    for ln, ou in mk["over_under"].items():
+        assert abs(ou["over"] + ou["under"] - 1) < 1e-9, f"O/U {ln} must sum to 1"
+    assert abs(mk["btts"]["yes"] + mk["btts"]["no"] - 1) < 1e-9
+    h, d, a = markets.wdl(m)
+    assert abs(mk["double_chance"]["1X"] + a - 1) < 1e-9, "1X + away = 1"
+    for line, ah in mk["ah"].items():
+        assert abs(ah["p_home"] + ah["p_away"] + ah["p_push"] - 1) < 1e-9, f"AH {line} sums to 1"
+    cs = mk["correct_score"]
+    assert all(cs[i]["p"] >= cs[i + 1]["p"] for i in range(len(cs) - 1)), "correct score sorted"
+    tt = mk["team_totals"]
+    assert tt["home_over_1_5"] > tt["away_over_1_5"], "favourite scores more"
+    # value math: bet p=0.5 at 2.2 -> EV +0.10, Kelly (1.2*0.5-0.5)/1.2
+    v = markets.value(0.5, 2.2)
+    assert abs(v["ev"] - 0.10) < 1e-9 and abs(v["kelly"] - (1.2 * 0.5 - 0.5) / 1.2) < 1e-9
+    assert markets.value(0.3, 2.0)["ev"] < 0 and markets.value(0.3, 2.0)["kelly"] == 0
+    print("ok markets")
 
 
 def _mini_sim():
@@ -112,6 +133,7 @@ if __name__ == "__main__":
     check_grid()
     check_rps()
     check_market()
+    check_markets()
     check_rank_group()
     check_allocation()
     check_group_sim()

@@ -133,6 +133,33 @@ RPS 越低越好;基线为均匀分布(0.333/0.333/0.333)与历史频率。
 
 > 诚实提示:这是足球版「能否跑赢市场」。跑平闭线已属不易,持续显著跑赢极罕见(与股票同理)。样本仅含可联网取得的历史赔率,不含全部淘汰赛。
 
+## 赔率、价值与「怎么下注收益最大」
+
+模型在未来 23 场比赛上识别出 39 个「正 EV」边(模型概率 × 实际赔率 − 1 > 0)。前 6:
+
+| 比赛 | 选项 | 模型概率 | 赔率 | EV | ¼Kelly 仓位 |
+|------|------|---------|------|-----|------------|
+| Brazil vs Haiti | 平 | 19.6% | 14.0 | +174.7% | 3.4% |
+| Brazil vs Haiti | 负 | 9.2% | 29.0 | +168.2% | 1.5% |
+| Iraq vs Norway | 胜 | 13.6% | 17.0 | +131.0% | 2.0% |
+| Austria vs Jordan | 负 | 21.1% | 9.9 | +109.3% | 3.1% |
+| Iraq vs Norway | 平 | 23.6% | 7.5 | +77.1% | 3.0% |
+| Ghana vs Panama | 负 | 48.5% | 3.6 | +74.7% | 7.2% |
+
+**但是——把这些边拿去历史回测(2014+2018 真实 Betfair 闭线)就露馅了:**
+
+| 策略 | 注数 | ROI |
+|------|------|-----|
+| 价值投注 EV>0%（平注） | 163 | +1.5% |
+| 价值投注 EV>5%（平注） | 126 | -0.5% |
+| 价值投注 EV>10%（平注） | 100 | -9.2% |
+| 价值投注 EV>20%（平注） | 76 | -16.9% |
+| 价值投注 EV>0（¼ Kelly） | 163 | +3.8% |
+| 盲投模型热门（平注） | 112 | +12.2% |
+| 每场投最大 EV 项（平注） | 112 | +14.7% |
+
+> ⚠️ **别被正收益骗了。** 在 2014+2018 真实 Betfair 赔率上回放价值投注。「越高把握的价值注、ROI 反而越低」(EV>0→EV>20% 一路下滑),这是「无可利用优势」的典型特征:模型与市场的分歧是噪声不是信号。个别策略(如盲投热门)的正收益来自 2014/18 是「大热之年」的小样本运气 + 大热-冷门偏差;换到冷门之年(如 2022)极可能转负。 而且这些是低抽水的交易所闭线价——真实软庄抽水更高、无法无风险下注;串关(组合)只会把每注的抽水相乘,EV 更差,不是「收益最大化」而是「方差最大化」。
+
 ## 概率校准(回测 192 场,三分类 one-vs-rest 池化)
 
 把模型给出的所有概率按预测值分箱,对比该箱实际发生频率;校准良好则两列接近。ECE(期望校准误差)= **0.054**。
@@ -151,6 +178,19 @@ RPS 越低越好;基线为均匀分布(0.333/0.333/0.333)与历史频率。
 | 0.9-1.0 | 1 | 91.0% | 100.0% |
 
 > 样本充足的 0.4–0.7 区间显示模型对强队**略偏保守**(报 50% 实际赢约 67%)。但 `scripts/calibration_experiment.py` 用「留一届交叉验证」检验「锐化」修正后发现:最优锐化幅度是逐届噪声(2014 是大热届、2022 是冷门届),调参反而让**留出届 RPS 变差(0.207→0.209)**。故保留 MLE 拟合值,不做事后锐化——这点保守正是模型对现代世界杯不可预测性应有的谦逊。
+
+## 「经济学家预测世界杯全对」?照妖镜
+
+'Predicted the World Cup' almost always means 'named the eventual champion,' which is a single ~5-30% bet, NOT 'predicted every match.' Calling all 64 results would be astronomically unlikely (a two-outcome lower bound alone is 2^-64 ~ 1e-19; with draws it's far worse, ~3^-64), so no human, model, or octopus has ever done it and nobody credibly claims to. Once you separate 'called the champion' from 'called every match,' the field sorts cleanly: EA gets the trophy right but the bracket mostly wrong; the banks (Goldman, UBS, ING, Commerzbank, Macquarie) were mostly WRONG on the champion in 2018 (and Goldman wrong in 2014 too) despite the best math; Nomura's lone 2018 hit and Paul the Octopus are survivorship/luck; only the academic Poisson/Elo/random-forest models (Groll et al.) are both methodologically honest AND have a real champion hit (Germany 2014). The genuinely borrowable recipe: model goals as Poisson, drive it with Elo rating differences, fit on ~20k historical matches, run thousands of Monte Carlo bracket simulations, ENSEMBLE with market/bookmaker consensus, output a probability distribution, and evaluate with a proper scoring rule over MANY tournaments — because one World Cup is far too small a sample to prove skill.
+
+| 谁 | 可信? | 能借鉴什么 |
+|----|-------|-----------|
+| EA Sports FIFA / EA FC video-game tournament simulation | ❌ 幸存者偏差/运气 | A high-fidelity bottom-up simulator (player-level ratings feeding a ma |
+| Investment-bank models — Goldman Sachs, UBS, ING, Nomura, Commerzbank, Macquarie | ❌ 幸存者偏差/运气 | This is the most borrowable methodology of the four. Concretely: (1) m |
+| Academic / economist models — notably Andreas Groll & Gunther Schauberger (LMU Munich) and related machine-learning forecasters | ✅ | Most methodologically honest of all: (1) estimate latent team-ability  |
+| Paul the Octopus (Sea Life Centre, Oberhausen, Germany) | ❌ 幸存者偏差/运气 | Nothing predictive. The only 'lesson' is the cautionary one: an 8-game |
+
+> 交叉印证:**EA Sports 的游戏模拟、Goldman Sachs、以及本模型,三套独立方法都把西班牙列为 2026 头号热门**(Goldman ~26%、本模型 18.6%)。独立方法的趋同,远比任何单一「神预测」更有信息量——而这套「Poisson+Elo+蒙特卡洛+市场集成+正确评分+多届回测」的配方,正是本项目所做的。
 
 ## 方法与数据
 

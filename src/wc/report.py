@@ -128,6 +128,31 @@ def render(ctx: dict) -> str:
             L.append("> 诚实提示:这是足球版「能否跑赢市场」。跑平闭线已属不易,持续显著跑赢极罕见"
                      "(与股票同理)。样本仅含可联网取得的历史赔率,不含全部淘汰赛。\n")
 
+    # ---- betting: value + honest strategy backtest
+    bb = ctx.get("betting_backtest")
+    vb = ctx.get("value_bets")
+    if bb or vb:
+        L.append("## 赔率、价值与「怎么下注收益最大」\n")
+        if vb:
+            L.append(f"模型在未来 {len({(v['home'],v['away']) for v in vb})} 场比赛上识别出 "
+                     f"{len(vb)} 个「正 EV」边(模型概率 × 实际赔率 − 1 > 0)。前 6:\n")
+            L.append("| 比赛 | 选项 | 模型概率 | 赔率 | EV | ¼Kelly 仓位 |")
+            L.append("|------|------|---------|------|-----|------------|")
+            for v in vb[:6]:
+                L.append(f"| {v['home']} vs {v['away']} | {v['pick'].split('· ')[-1]} | "
+                         f"{_pct(v['model_p'])} | {v['odds']} | {v['ev_pct']:+.1f}% | "
+                         f"{v['kelly_pct'] / 4:.1f}% |")
+            L.append("")
+        if bb and bb.get("strategies"):
+            L.append("**但是——把这些边拿去历史回测(2014+2018 真实 Betfair 闭线)就露馅了:**\n")
+            L.append("| 策略 | 注数 | ROI |")
+            L.append("|------|------|-----|")
+            for s in bb["strategies"]:
+                L.append(f"| {s['name']} | {s['n_bets']} | {100 * s['roi']:+.1f}% |")
+            L.append("")
+            L.append(f"> ⚠️ **别被正收益骗了。** {bb.get('note', '')}")
+            L.append("")
+
     # ---- calibration
     cal = ctx.get("calibration")
     if cal is not None and len(cal):
@@ -146,6 +171,22 @@ def render(ctx: dict) -> str:
                  "(0.207→0.209)**。故保留 MLE 拟合值,不做事后锐化——这点保守正是模型对现代世界杯"
                  "不可预测性应有的谦逊。")
         L.append("")
+
+    # ---- famous-predictor mirror
+    meth = ctx.get("methodology")
+    if meth and meth.get("referents"):
+        L.append("## 「经济学家预测世界杯全对」?照妖镜\n")
+        L.append(meth.get("key_lesson", "") + "\n")
+        L.append("| 谁 | 可信? | 能借鉴什么 |")
+        L.append("|----|-------|-----------|")
+        for r in meth["referents"]:
+            L.append(f"| {r.get('who', '')} | {'✅' if r.get('credible') else '❌ 幸存者偏差/运气'} | "
+                     f"{(r.get('borrowable') or '—')[:70]} |")
+        L.append("")
+        L.append("> 交叉印证:**EA Sports 的游戏模拟、Goldman Sachs、以及本模型,三套独立方法都把"
+                 "西班牙列为 2026 头号热门**(Goldman ~26%、本模型 18.6%)。独立方法的趋同,"
+                 "远比任何单一「神预测」更有信息量——而这套「Poisson+Elo+蒙特卡洛+市场集成+正确评分"
+                 "+多届回测」的配方,正是本项目所做的。\n")
 
     # ---- methodology
     fit = ctx.get("fit", {})

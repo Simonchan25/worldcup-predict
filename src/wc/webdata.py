@@ -151,7 +151,8 @@ def _group_standings(groups, schedule):
 
 def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, values,
                  fixtures, live, adv, market_outright, fixtures_market, fit, blend_info,
-                 bt_summary, calibration, calibration_ece, market_beat, sources):
+                 bt_summary, calibration, calibration_ece, market_beat, sources,
+                 betting_backtest=None, value_bets=None, injuries=None, methodology=None):
     advm = {r["team"]: r for r in adv.to_dict("records")}
     mkt_map = {}
     if market_outright is not None:
@@ -211,6 +212,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
                         "source": mkt.get("source", "")} if mkt else None),
             "form_h": form(H), "form_a": form(A),
             "factors": meta["factors"], "narrative": meta["narrative"], "diverge": meta["diverge"],
+            "markets": fx.get("markets"),
         })
 
     live_out = []
@@ -230,7 +232,14 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "calibration": (calibration.to_dict("records") if calibration is not None else []),
         "calibration_ece": calibration_ece,
         "market_beat": market_beat,
+        "betting_backtest": betting_backtest,
     }
+    # attach injuries to each group team for the UI
+    inj = (injuries or {}).get("by_team", {}) if isinstance(injuries, dict) else {}
+    for g in groups_out:
+        for row in groups_out[g]:
+            if row["team"] in inj:
+                row["injuries"] = inj[row["team"]]
 
     return {
         "meta": {
@@ -249,4 +258,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "fixtures": fixtures_out,
         "live": live_out,
         "credibility": credibility,
+        "betting": {"value_bets": value_bets or [], "backtest": betting_backtest},
+        "injuries": inj,
+        "methodology": methodology,
     }

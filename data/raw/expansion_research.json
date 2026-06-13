@@ -1,0 +1,313 @@
+{
+ "predictors": {
+  "referents": [
+   {
+    "who": "EA Sports FIFA / EA FC video-game tournament simulation",
+    "claim": "EA's football game simulates the whole World Cup and has 'correctly predicted' the champion four tournaments in a row: Spain 2010, Germany 2014, France 2018, Argentina 2022 (and now picks Spain for 2026).",
+    "truth": "The CHAMPION-pick streak is real and genuinely impressive: Spain 2010, Germany 2014, France 2018, Argentina 2022 are all correct, and for 2026 EA again picks Spain. But the 'predicted the World Cup perfectly' framing is false. EA only gets the trophy-winner right; the rest of the bracket is mostly wrong. The cleanest documented example is 2018: EA correctly called France as champion but predicted France would beat GERMANY in the final (actual final was France 4-2 Croatia), had Germany reaching the semi-finals (Germany was actually eliminated in the GROUP stage), and had Belgium knocking Brazil out 2-0 in the round of 16 (Belgium actually beat Brazil 2-1 in the quarter-finals). So: champion right, finalist/semi-finalists/specific scorelines wrong. Method: EA runs the actual videogame engine (player ratings + match-engine physics) and simulates the bracket; in 2018 they also cited 406M virtual games played by owners, which independently surfaced France/Brazil/Germany as strongest. It is a momentum/marketing exercise, not a calibrated statistical forecast.",
+    "method": "Run the football game's own match engine (player attribute ratings + simulated physics) to play out the tournament bracket; secondarily aggregate millions of player-played matches. No explicit probability model.",
+    "credible": false,
+    "borrowable": "A high-fidelity bottom-up simulator (player-level ratings feeding a match engine) is a legitimate way to surface the strongest team. Borrowable idea: it independently converges on the same favorites as the bank models, which is a useful cross-check. But a single deterministic playthrough cannot be 'perfect' — to be usable you must run it thousands of times (Monte Carlo) and report a probability distribution, not one bracket."
+   },
+   {
+    "who": "Investment-bank models — Goldman Sachs, UBS, ING, Nomura, Commerzbank, Macquarie",
+    "claim": "Banks build sophisticated quant models (the same machinery they use for markets) that 'predict' the World Cup.",
+    "truth": "The methods are genuinely sound but the hit record is poor-to-mixed, which kills any 'predicted it perfectly' claim. GOLDMAN SACHS: best-documented and most rigorous method — a Poisson/regression model on ~20,000 international matches since 1978, driven mainly by Elo rating differences plus home advantage and recent form, then Monte Carlo-simulated over the bracket. Record is bad on the champion call: picked Brazil to win in BOTH 2014 (Germany won; Brazil lost 7-1 in the semi) and 2018 (Brazil out in the quarters; France won). For 2026 Goldman picks Spain ~26%, France ~19%, Argentina ~14%. UBS: used its stock-picking/portfolio quant tech (10,000 Monte Carlo simulations, Elo-based) and in 2018 made Germany favorite at ~24% — Germany crashed out in the group stage. ING: picked Spain in 2018 — wrong (Spain lost in the round of 16). COMMERZBANK and MACQUARIE: also wrong in 2018. NOMURA: the lone bank that 'called' France in 2018, but used a 'portfolio/relative-value' framing and, given how many banks each published a different winner, this is best read as one survivor among many guesses rather than demonstrated skill. Net: across 2018 essentially every big-bank champion pick except Nomura's was wrong.",
+    "method": "Poisson-distributed goal-count regression (each team's goals ~ Poisson) with Elo rating difference as the key regressor, fit on ~20k historical internationals, then thousands of Monte Carlo tournament simulations to produce win probabilities. UBS used a similar Elo + 10,000-simulation Monte Carlo engine ported from its equities tooling.",
+    "credible": false,
+    "borrowable": "This is the most borrowable methodology of the four. Concretely: (1) model goals as bivariate/independent Poisson; (2) use Elo rating difference between teams as the dominant predictor, updated by results and opponent quality; (3) fit by regression on a large historical match dataset (Goldman: ~20k matches since 1978); (4) add covariates like home advantage, recent goal form, momentum; (5) Monte Carlo-simulate the full bracket (UBS: 10,000 runs) to get a probability DISTRIBUTION over outcomes, not a single winner. Honest caveat the banks themselves report: Goldman's predicted-vs-actual goal-difference correlation is only ~43-49%, so the model is informative but far from deterministic."
+   },
+   {
+    "who": "Academic / economist models — notably Andreas Groll & Gunther Schauberger (LMU Munich) and related machine-learning forecasters",
+    "claim": "A viral 'an economist/academic who predicted the World Cup' — sometimes inflated to 'predicted all the results.'",
+    "truth": "There is a real, credible academic line of work, and it is the most likely 'serious economist/statistician' the user half-remembers — but the 'predicted ALL results' version is a mischaracterization. Groll & Schauberger's team made Germany the favorite (~28.8%, just ahead of Brazil ~27.7%) for 2014 and Germany DID win — a genuine, pre-registered champion hit using a real model, not luck-after-the-fact. Their later random-forest model made France a top contender in 2018 (France won). But the same family of models did NOT have Argentina (2022) or Spain (women's 2023) as favorites — they were only listed as contenders. Crucially, these are PROBABILISTIC forecasts: they output win probabilities for every team and never claim to call all 64 matches. The academic literature itself (e.g. the 'Tournament Rank Probability Score' / one-shot-tournament-evaluation work by Ekstrom, Van Eetvelde, Ley, Brefeld) explicitly argues that a single tournament is far too small a sample to prove a model is skillful, and that proper scoring rules — not 'did it name the winner' — are the only honest way to judge a forecast.",
+    "method": "Team-specific regularized Poisson regression (2014) and later a hybrid random-forest approach combining estimated team-ability parameters with bookmaker/transfer-market 'consensus' strength, fit on past World Cups (2002-2014) and Monte Carlo-simulated to get per-team title probabilities.",
+    "credible": true,
+    "borrowable": "Most methodologically honest of all: (1) estimate latent team-ability parameters and blend model output with market/bookmaker consensus (ensembling beats any single model); (2) use random forests / regularized regression rather than a single hand-tuned equation; (3) ALWAYS report a probability distribution and evaluate with a proper scoring rule (log-loss or the Tournament Rank Probability Score), which rewards 'slightly wrong' rankings; (4) accept that one World Cup ~ 64 matches is an insufficient sample to validate skill — backtest across many past tournaments instead. This directly answers the user's statistical point and is the real 'learnable' methodology."
+   },
+   {
+    "who": "Paul the Octopus (Sea Life Centre, Oberhausen, Germany)",
+    "claim": "An oracle that 'predicted the World Cup perfectly.'",
+    "truth": "Real animal, real media phenomenon, zero predictive validity. Method: handlers lowered two flag-marked feeding boxes with a mussel in each; whichever Paul opened/ate first was the 'prediction.' His 2010 run was genuinely striking — 8 for 8 in the matches he was given (all 7 of Germany's games, including their loss to Spain, plus correctly calling Spain to beat the Netherlands in the final). Across his career (2008 Euro + 2010 WC) he was about 12 of 14 (~86%). But this is pure binary coin-flipping: getting 8 consecutive two-way picks right has probability (1/2)^8 = 1/256 — improbable for one octopus, but with dozens of animal 'oracles' worldwide some were statistically guaranteed to streak. It is the textbook survivorship-bias case: we remember Paul precisely because he's the survivor, and he predicted nothing about HOW matches went. Zero borrowable method.",
+    "method": "Choose between two flag-labeled food boxes (one mussel each); the box opened first is treated as the 'pick'. A binary coin flip with no model.",
+    "credible": false,
+    "borrowable": "Nothing predictive. The only 'lesson' is the cautionary one: an 8-game two-outcome streak is a 1-in-256 event, and across many animal oracles some will streak by chance — the perfect illustration of survivorship bias and why a single lucky run is not evidence of skill."
+   }
+  ],
+  "best_guess_referent": "Most likely the user is conflating two real things into one 'economist who predicted it perfectly': (a) the EA Sports videogame, whose CHAMPION-pick streak is genuinely 4-for-4 (Spain 2010, Germany 2014, France 2018, Argentina 2022, Spain again for 2026) — this is the most viral 'got it right again' story; and (b) the real academic statistician Andreas Groll (LMU Munich), the credible 'economist/quant' whose model correctly made Germany favorite for 2014 (and France a top pick in 2018). Neither 'predicted every match.' If the user wants a borrowable method, point them to Groll's and Goldman's approach (Poisson goals + Elo + Monte Carlo + proper scoring rules), NOT EA or Paul the Octopus.",
+  "key_lesson": "'Predicted the World Cup' almost always means 'named the eventual champion,' which is a single ~5-30% bet, NOT 'predicted every match.' Calling all 64 results would be astronomically unlikely (a two-outcome lower bound alone is 2^-64 ~ 1e-19; with draws it's far worse, ~3^-64), so no human, model, or octopus has ever done it and nobody credibly claims to. Once you separate 'called the champion' from 'called every match,' the field sorts cleanly: EA gets the trophy right but the bracket mostly wrong; the banks (Goldman, UBS, ING, Commerzbank, Macquarie) were mostly WRONG on the champion in 2018 (and Goldman wrong in 2014 too) despite the best math; Nomura's lone 2018 hit and Paul the Octopus are survivorship/luck; only the academic Poisson/Elo/random-forest models (Groll et al.) are both methodologically honest AND have a real champion hit (Germany 2014). The genuinely borrowable recipe: model goals as Poisson, drive it with Elo rating differences, fit on ~20k historical matches, run thousands of Monte Carlo bracket simulations, ENSEMBLE with market/bookmaker consensus, output a probability distribution, and evaluate with a proper scoring rule over MANY tournaments — because one World Cup is far too small a sample to prove skill.",
+  "sources": [
+   "https://www.espn.com/soccer/story/_/id/48965907/simulating-world-cup-did-ea-predict-winners-how-did-usmnt-get-on",
+   "https://www.videogameschronicle.com/news/ea-has-predicted-who-will-win-the-2026-fifa-world-cup-after-getting-the-last-four-right/",
+   "https://www.ea.com/games/fifa/amp/news/ea-sports-predicts-world-cup-fifa-18",
+   "https://hypebeast.com/2018/7/fifa-18-world-cup-winner-prediction-results",
+   "https://www.engadget.com/2018-07-16-ea-sports-predicted-france-world-cup-win.html",
+   "https://www.scientificamerican.com/blog/observations/world-cup-prediction-mathematics-explained/",
+   "https://www.zerohedge.com/personal-finance/goldmans-world-cup-winner-prediction",
+   "https://www.cnbc.com/2018/06/11/goldman-sachs-predicts-brazil-will-get-world-cup-revenge-against-germany.html",
+   "http://www.xinhuanet.com/english/2018-06/13/c_137251298.htm",
+   "https://www.cnbc.com/2018/05/17/world-cup-winner-predicted-by-ubs.html",
+   "https://fortune.com/2018/06/27/ubs-commerzbank-predict-germany-would-win-world-cup-wrong",
+   "https://opendatascience.com/how-well-did-data-scientists-predict-the-2018-world-cup/",
+   "https://grollchristian.wordpress.com/2014/06/12/world-cup-2014-prediction/",
+   "https://arxiv.org/pdf/1806.03208",
+   "https://epub.ub.uni-muenchen.de/31579/1/Groll_Prediction.pdf",
+   "https://arxiv.org/abs/1912.07364",
+   "https://www.pbs.org/newshour/science/to-beat-vegas-bookies-at-the-world-cup-these-statisticians-turned-to-artificial-intelligence",
+   "https://kids.kiddle.co/Paul_the_Octopus",
+   "https://www.foxnews.com/entertainment/paul-the-octopus-world-cup-oracle-dies"
+  ]
+ },
+ "oddsAvail": {
+  "markets_available": [
+   {
+    "market": "Over/Under 2.5 goals (totals)",
+    "where": "the-odds-api.com (market key 'totals'), oddspapi.io, oddschecker, bookmaker apps (DraftKings/FanDuel/Bet365/Pinnacle). For WC the totals line is published per fixture; 2.5 is the standard line.",
+    "fetchable": true
+   },
+   {
+    "market": "Both Teams To Score (BTTS)",
+    "where": "the-odds-api.com (market key 'btts', listed under 'Additional Markets' for soccer/World Cup), oddspapi.io, oddschecker, bookmaker apps",
+    "fetchable": true
+   },
+   {
+    "market": "Asian Handicap / spreads",
+    "where": "the-odds-api.com (market key 'spreads' — note their docs warn spreads/totals are 'mainly US sports', soccer AH coverage is partial/region-dependent; eu region + Pinnacle gives best AH coverage), oddspapi.io (native Asian Handicap structures), Betfair/Pinnacle directly",
+    "fetchable": true
+   },
+   {
+    "market": "Correct Score",
+    "where": "NOT in the-odds-api.com (no correct_score market key exists). Available only on bookmaker sites / oddschecker (JS-gated) or specialist feeds. oddspapi.io lists 1X2/O-U/BTTS/AH but not correct score on free tier.",
+    "fetchable": false
+   },
+   {
+    "market": "1X2 / Match result (h2h_3_way)",
+    "where": "the-odds-api.com (h2h / h2h_3_way), every aggregator and book",
+    "fetchable": true
+   }
+  ],
+  "live_odds_apis": [
+   {
+    "name": "the-odds-api.com",
+    "free_tier": "500 credits/month, free API key on signup. Cost = (#markets x #regions) per /odds call; historical = 10x. So O/U+BTTS in 1 region = 2 credits/call (~250 calls/mo). In-play included: live matches appear in same /odds endpoint when commence_time < now. No separate live endpoint, no websocket.",
+    "needs": "Free API key (query param apiKey=). Endpoint reachable and live now (verified: returns INVALID_KEY 401 without a real key). Sport key: soccer_fifa_world_cup."
+   },
+   {
+    "name": "oddspapi.io",
+    "free_tier": "Free tier ~250 requests/month, all 350+ bookmakers (incl. Pinnacle, DraftKings, FanDuel, Polymarket/Kalshi). ~0.88s cooldown between calls. Markets: 1X2, O/U (1.5/2.5/3.5), BTTS, Asian Handicap, outrights. Historical snapshots free. Claims WC fixtures flagged hasOdds:true.",
+    "needs": "Free API key (query-param based). Newer/less battle-tested than the-odds-api; verify coverage on a real call before relying on it."
+   },
+   {
+    "name": "Betfair Exchange API",
+    "free_tier": "Free for development with a Delayed App Key (delayed/dev data). Real-time betting requires Live App Key = one-off GBP 499 activation fee; commercial software vendor cert = GBP 999.",
+    "needs": "KYC-verified Betfair account (personal or corporate) + app key. Best source of true real-time exchange prices/liquidity but high barrier for live."
+   },
+   {
+    "name": "Pinnacle API",
+    "free_tier": "No public free tier. Pinnacle CLOSED public API access on 2025-07-23. Now bespoke/commercial only.",
+    "needs": "Email api@pinnacle.com with use case (they support academics/pregame projects), or be an affiliate (need 5 funded signups per 3 months). Otherwise get Pinnacle lines indirectly via an aggregator (the-odds-api eu region, oddspapi.io, SharpAPI)."
+   },
+   {
+    "name": "SharpAPI / SportsGameOdds (aggregators)",
+    "free_tier": "SportsGameOdds has a limited free tier (80+ books incl. Pinnacle) with websocket streams; SharpAPI resells Pinnacle lines via single REST call on a free signup tier. Limits modest.",
+    "needs": "Free signup + API key. Useful specifically to obtain Pinnacle sharp lines without direct Pinnacle access."
+   }
+  ],
+  "ou_samples": [],
+  "recommendation": "FEASIBLE LIVE PATH: Use the-odds-api.com on the free tier (500 credits/mo, free key) as the primary, with sport key soccer_fifa_world_cup. Request markets=totals,btts (and spreads,h2h_3_way if wanted) with regions=eu (eu region gives Pinnacle + better Asian-handicap/totals coverage than us books). In-play is automatic: poll the same /odds endpoint and treat any event with commence_time < now() as live. Each call with 2 markets x 1 region = 2 credits, so 500 credits ~= 250 calls/month — enough to poll a handful of fixtures a few times each, but NOT enough to poll every minute of every match; for that you must pay (20K credits = USD 30/mo) or add a second free key from oddspapi.io (~250 req/mo, all 350+ books, has native Asian Handicap). HONEST LIMITS: (1) the-odds-api has NO correct-score market and its soccer spreads/totals are 'mainly US' so Asian-handicap coverage is partial — lean on eu region/Pinnacle and accept gaps. (2) Correct score is realistically only on bookmaker sites / oddschecker, which are JS-gated and bot-blocked (oddschecker returned HTTP 403 to a plain fetch; ESPN /soccer/odds returned 400) — not script-fetchable without a headless browser. (3) For true real-time exchange prices use Betfair (GBP 499 live key) — overkill for a hobby project. (4) Pinnacle direct API is closed to the public since 2025-07-23; get its lines via an aggregator. NOTE ON SAMPLE LINES: I could not return real verified over/under 2.5 numbers — news/guide pages (FoxSports, Yahoo, picksandparlays, CBS) only publish tournament FUTURES, not per-match O/U; the live per-match lines live behind JS/bot-blocked aggregators (oddschecker 403) or behind the API key wall. To pull real O/U 2.5 lines, sign up for a free the-odds-api key and call: https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?regions=eu&markets=totals,btts&oddsFormat=decimal&apiKey=YOUR_KEY",
+  "sources": [
+   "https://the-odds-api.com/sports/fifa-world-cup-odds.html",
+   "https://the-odds-api.com/liveapi/guides/v4/",
+   "https://the-odds-api.com/sports-odds-data/betting-markets.html",
+   "https://the-odds-api.com/",
+   "https://oddspapi.io/blog/world-cup-odds-api-2026-fifa/",
+   "https://oddspapi.io/blog/odds-api-pricing-2026-comparison/",
+   "https://support.developer.betfair.com/hc/en-us/articles/115003864531-Are-there-any-costs-associated-with-API-access",
+   "https://developer.betfair.com/exchange-api/",
+   "https://github.com/pinnacleapi/pinnacleapi-documentation/blob/master/FAQ.md",
+   "https://sportsapis.dev/pinnacle-api",
+   "https://www.oddschecker.com/football/world-cup",
+   "https://www.thestatsapi.com/world-cup/odds",
+   "https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds"
+  ]
+ },
+ "injuries": {
+  "items": [
+   {
+    "team": "Brazil",
+    "player": "Rodrygo",
+    "status": "out",
+    "note": "Torn ACL and meniscus in March while at Real Madrid; ruled out of the tournament."
+   },
+   {
+    "team": "Brazil",
+    "player": "Neymar",
+    "status": "doubtful",
+    "note": "Grade-two right calf strain; ruled out of the June 13 opener vs Morocco and likely the group stage, slim chance of a late return."
+   },
+   {
+    "team": "Brazil",
+    "player": "Estevao",
+    "status": "out",
+    "note": "Teenage Chelsea winger suffered a torn hamstring in April; left off the squad."
+   },
+   {
+    "team": "Brazil",
+    "player": "Eder Militao",
+    "status": "out",
+    "note": "Real Madrid defender out after thigh/hamstring surgery in April."
+   },
+   {
+    "team": "Netherlands",
+    "player": "Xavi Simons",
+    "status": "out",
+    "note": "Tore his ACL in late April; ruled out of the World Cup."
+   },
+   {
+    "team": "Netherlands",
+    "player": "Jurrien Timber",
+    "status": "out",
+    "note": "Groin injury, failed recovery; replaced by Lutsharel Geertruida."
+   },
+   {
+    "team": "Netherlands",
+    "player": "Matthijs de Ligt",
+    "status": "out",
+    "note": "Long-standing back issue requiring additional surgery; ruled out."
+   },
+   {
+    "team": "Germany",
+    "player": "Marc-Andre ter Stegen",
+    "status": "out",
+    "note": "Torn thigh muscle; out, prompting a recall of veteran keeper Manuel Neuer."
+   },
+   {
+    "team": "Germany",
+    "player": "Serge Gnabry",
+    "status": "out",
+    "note": "Bayern winger out with a torn adductor sustained in training in April."
+   },
+   {
+    "team": "France",
+    "player": "Hugo Ekitike",
+    "status": "out",
+    "note": "Liverpool forward ruptured his Achilles tendon in April."
+   },
+   {
+    "team": "Spain",
+    "player": "Fermin Lopez",
+    "status": "out",
+    "note": "Barcelona midfielder fractured the fifth metatarsal in his right foot, requiring surgery."
+   },
+   {
+    "team": "Spain",
+    "player": "Lamine Yamal",
+    "status": "doubtful",
+    "note": "Partially torn hamstring; in the squad and expected fit around June 15 but not yet confirmed at full sharpness."
+   },
+   {
+    "team": "Spain",
+    "player": "Mikel Merino",
+    "status": "doubtful",
+    "note": "Lingering foot stress fracture since February; fitness uncertain."
+   },
+   {
+    "team": "Japan",
+    "player": "Kaoru Mitoma",
+    "status": "out",
+    "note": "Brighton winger out with a torn hamstring deemed unlikely to recover in time."
+   },
+   {
+    "team": "Japan",
+    "player": "Takumi Minamino",
+    "status": "out",
+    "note": "Torn ACL in December; failed comeback bid, ruled out."
+   },
+   {
+    "team": "United States",
+    "player": "Johnny Cardoso",
+    "status": "out",
+    "note": "Atletico Madrid midfielder out after ankle surgery in May (high-grade sprain)."
+   },
+   {
+    "team": "United States",
+    "player": "Patrick Agyemang",
+    "status": "out",
+    "note": "Ruptured his Achilles tendon in April; ruled out."
+   },
+   {
+    "team": "Canada",
+    "player": "Alphonso Davies",
+    "status": "doubtful",
+    "note": "Bayern fullback recovering from a 2025 ACL tear plus a hamstring issue; ruled out of the opener vs Bosnia, status game-to-game."
+   },
+   {
+    "team": "Mexico",
+    "player": "Luis Angel Malagon",
+    "status": "out",
+    "note": "Club America goalkeeper ruptured his Achilles tendon; ruled out."
+   },
+   {
+    "team": "Scotland",
+    "player": "Billy Gilmour",
+    "status": "out",
+    "note": "Napoli midfielder suffered a knee injury in a warm-up match; ruled out."
+   },
+   {
+    "team": "Croatia",
+    "player": "Luka Modric",
+    "status": "doubtful",
+    "note": "Recovering from a cheekbone fracture; expected to heal in time but a fitness watch."
+   },
+   {
+    "team": "Uruguay",
+    "player": "Jose Gimenez",
+    "status": "doubtful",
+    "note": "Severe ankle sprain sustained in May; fitness uncertain."
+   },
+   {
+    "team": "Ghana",
+    "player": "Mohammed Kudus",
+    "status": "doubtful",
+    "note": "Hamstring/quadriceps setback; in doubt for the early matches."
+   },
+   {
+    "team": "Argentina",
+    "player": "Nicolas Otamendi",
+    "status": "suspended",
+    "note": "Carries a red-card suspension from qualifying; will miss at least Argentina's first group match."
+   },
+   {
+    "team": "Ecuador",
+    "player": "Moises Caicedo",
+    "status": "suspended",
+    "note": "Red card in qualifying carries over; suspended for the early stage of the tournament."
+   },
+   {
+    "team": "Qatar",
+    "player": "Tarek Salman",
+    "status": "suspended",
+    "note": "Sent off in Asian qualifying; suspension carries into the group stage."
+   },
+   {
+    "team": "Portugal",
+    "player": "Cristiano Ronaldo",
+    "status": "doubtful",
+    "note": "Faced a three-game ban for violent conduct (elbow), but FIFA suspended two-thirds under probation, so he is cleared to play the opener."
+   }
+  ],
+  "sources": [
+   "https://www.espn.com/soccer/story/_/id/48572979/2026-fifa-world-cup-injuries-tracker-which-stars-miss-latest-info",
+   "https://www.goal.com/en-us/lists/biggest-stars-miss-2026-world-cup-injury-suspension-selection/bltd6ff2d56ebf99a62",
+   "https://www.si.com/soccer/2026-world-cup-biggest-star-players-ruled-out-injury",
+   "https://www.si.com/soccer/netherlands-key-player-ruled-out-2026-world-cup-injury",
+   "https://www.aljazeera.com/sports/2026/5/28/neymar-out-of-brazil-world-cup-opener-due-to-calf-injury",
+   "https://www.si.com/soccer/neymar-injury-timeline-brazil-matches-miss-2026-world-cup",
+   "https://thesportscast.net/2025/11/25/which-players-are-suspended-for-the-2026-fifa-world-cup-due-to-red-or-yellow-cards/",
+   "https://www.si.com/soccer/cristiano-ronaldo-world-cup-reprieve-creates-risk-legal-action",
+   "https://worldsoccertalk.com/amp/world-cup/good-news-for-argentina-as-julian-alvarez-and-cristian-romero-recover-from-injuries-for-2026-world-cup/",
+   "https://bleacherreport.com/articles/25437927-world-cup-2026-starting-lineups-notable-injury-news-and-potential-replacements"
+  ],
+  "coverage": "Data is solid and cross-corroborated by ESPN's injuries tracker, Goal.com, Sports Illustrated, and Al Jazeera as of mid-June 2026 (tournament kicked off June 11). Confirmed season-ending/tournament-ending injuries to stars are well documented. The \"doubtful\" tier (Neymar, Yamal, Davies, Modric, Kudus, Gimenez, Merino) is genuinely fluid day-to-day; statuses may change as the group stage progresses. Suspensions from qualifying (Otamendi, Caicedo, Salman) are confirmed but exact number of matches each misses was not fully specified in sources. Cristian Romero (Argentina) had an MCL scare but recovered and trained normally by early June, so he is NOT listed as an absence. Ronaldo is included with nuance: he was banned but FIFA cleared him for the opener. Some big-name omissions are selection decisions, not injuries (e.g., England's Cole Palmer, Phil Foden, Trent Alexander-Arnold; Brazil's Joao Pedro; Spain's Dani Carvajal) — these were intentionally excluded from the list since the task asked for injuries/suspensions/forced absences, not coach's choices. NOT clearly available: precise return dates for doubtful players, and any new injuries from the opening matches (June 11-13) had limited coverage at time of search."
+ }
+}

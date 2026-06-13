@@ -13,7 +13,7 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from . import model
+from . import markets, model
 
 HOSTS = ("United States", "Mexico", "Canada")
 KO_ORDER = {"r32": 0, "r16": 1, "qf": 2, "sf": 3, "third": 4, "final": 5}
@@ -321,5 +321,6 @@ def predict_fixtures(schedule, ratings, params, start, end):
             "lambda_h": round(lh, 3), "lambda_a": round(la, 3),
             "p_home": round(pw, 4), "p_draw": round(pd_, 4), "p_away": round(pl, 4),
             "top_scores": "; ".join(f"{i}-{j} {p:.1%}" for i, j, p in top),
+            "markets": markets.all_markets(grid),
         })
     return pd.DataFrame(rows)

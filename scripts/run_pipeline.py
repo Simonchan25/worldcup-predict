@@ -12,7 +12,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from wc import backtest, data, elo, market, model, report, simulate  # noqa: E402
+from wc import backtest, betting, data, elo, market, model, report, simulate  # noqa: E402
 
 
 def main():
@@ -138,6 +138,15 @@ def main():
                                        f"({', '.join(dropped_odds)})")
                 print("   dropped implausible odds rows:", dropped_odds)
 
+    # 6b. value bets on upcoming fixtures (model edge vs the offered odds)
+    valid_om = [o for o in (om or [])
+                if market.valid_1x2(o.get("home_odds"), o.get("draw_odds"), o.get("away_odds"))]
+    value_bets = betting.current_value(fixtures.to_dict("records"), valid_om, min_edge=0.0)
+    if value_bets:
+        pd.DataFrame(value_bets).to_csv(out / "value_bets.csv", index=False)
+        print(f"== {len(value_bets)} model value-edges on upcoming fixtures "
+              f"(top {value_bets[0]['ev_pct']:+.1f}% EV) ==")
+
     if wc.get("elo_external"):
         sources["外部 Elo 对照"] = f"{wc['elo_external'].get('source', '?')}(截至 {wc['elo_external'].get('asof', '?')})"
     if wc.get("squad_values"):
@@ -147,6 +156,7 @@ def main():
     bt_summary = None
     calibration = None
     market_beat = None
+    betting_bt = None
     if not args.skip_backtest:
         print("== backtesting 2014/2018/2022 ==")
         per_match, bt_summary, calibration = backtest.run_backtest(df, xi=args.xi)
@@ -172,11 +182,26 @@ def main():
             for t in market_beat["tournaments"]:
                 print(f"     {t['wc']:16} n={t['n']:<3} model {t['rps_model']:.4f} / market {t['rps_market']:.4f}")
 
+            # honest betting-strategy backtest on the real historical odds
+            betting_bt = betting.betting_backtest(per_match, betting.load_raw_odds(hist_path))
+            (out / "betting_backtest.json").write_text(
+                json.dumps(betting_bt, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"   BETTING BACKTEST ({betting_bt['n_matches']} matches): "
+                  f"edge_is_real={betting_bt['edge_is_real']} "
+                  f"roi_by_threshold(EV>0/5/10/20%)={betting_bt['roi_by_threshold']}")
+            for s in betting_bt["strategies"]:
+                print(f"     {s['name']:26} 注数 {s['n_bets']:<4} ROI {100 * s['roi']:+.1f}%")
+
     # 8. report + JSON bundle
+    injuries = (json.loads((data.WC / "injuries.json").read_text(encoding="utf-8"))
+                if (data.WC / "injuries.json").exists() else None)
+    methodology = (json.loads((data.WC / "methodology.json").read_text(encoding="utf-8"))
+                   if (data.WC / "methodology.json").exists() else None)
     ctx = {
         "asof": str(today.date()),
         "n_sims": args.sims,
         "data_info": data_info,
+        "methodology": methodology,
         "fit": fit,
         "blend_info": blend_info,
         "adv": adv,
@@ -188,6 +213,8 @@ def main():
         "calibration": calibration,
         "calibration_ece": backtest.ece(calibration) if calibration is not None else None,
         "market_beat": market_beat,
+        "betting_backtest": betting_bt,
+        "value_bets": value_bets,
         "live": live if len(live) else None,
         "sources": sources,
     }
@@ -207,8 +234,6 @@ def main():
 
     # 9. frontend data bundle (with per-match reasoning)
     from wc import webdata  # noqa: E402
-    mb_path = out / "market_beat.json"
-    market_beat = json.loads(mb_path.read_text(encoding="utf-8")) if mb_path.exists() else None
     web_bundle = webdata.build_bundle(
         asof=str(today.date()), n_sims=args.sims, df=df, groups=wc["groups"],
         schedule=wc["schedule"], ratings_elo=ratings_elo, ratings=ratings, values=values,
@@ -216,7 +241,8 @@ def main():
         fixtures_market=fixtures_market, fit=fit, blend_info=blend_info,
         bt_summary=bt_summary, calibration=calibration,
         calibration_ece=(backtest.ece(calibration) if calibration is not None else None),
-        market_beat=market_beat, sources=sources)
+        market_beat=market_beat, betting_backtest=betting_bt, value_bets=value_bets,
+        injuries=injuries, methodology=methodology, sources=sources)
     web_dir = data.ROOT / "web"
     web_dir.mkdir(exist_ok=True)
     (web_dir / "data.js").write_text(

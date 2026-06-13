@@ -7,6 +7,7 @@
   const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
   const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   const elx = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+  const INJ = D.injuries || {};
 
   /* ---------- hero ---------- */
   function hero() {
@@ -75,6 +76,19 @@
     const mk = fx.market ? `<div class="mc-market"><span>市场</span><div class="mm-bar">
         <i class="mm-h" style="width:${100 * fx.market.h}%"></i><i class="mm-d" style="width:${100 * fx.market.d}%"></i><i class="mm-a" style="width:${100 * fx.market.a}%"></i>
       </div><span>${pct(fx.market.h, 0)}/${pct(fx.market.d, 0)}/${pct(fx.market.a, 0)}</span></div>` : "";
+    const m = fx.markets;
+    const mkts = m ? `<div class="mkts">
+      <span class="mkt">大 2.5 <b>${pct(m.over_under["2.5"].over, 0)}</b></span>
+      <span class="mkt">小 2.5 <b>${pct(m.over_under["2.5"].under, 0)}</b></span>
+      <span class="mkt">双方进球 <b>${pct(m.btts.yes, 0)}</b></span>
+      <span class="mkt">主 -1.5 <b>${pct(m.ah["-1.5"].p_home, 0)}</b></span>
+      <span class="mkt">公平赔率 <span class="fo">${(1 / Math.max(ph, 1e-6)).toFixed(2)} / ${(1 / Math.max(pdr, 1e-6)).toFixed(2)} / ${(1 / Math.max(pa, 1e-6)).toFixed(2)}</span></span>
+    </div>` : "";
+    const injLine = (team, fl) => {
+      const it = INJ[team]; if (!it || !it.length) return "";
+      const txt = it.slice(0, 3).map(x => esc(x.player) + (x.status && x.status !== "out" ? `(${esc(x.status)})` : "")).join("、");
+      return `<div class="inj"><span class="ic">🩹</span><span>${fl} ${esc(team)} 缺阵/存疑：${txt}${it.length > 3 ? " 等" : ""}</span></div>`;
+    };
     const badge = fx.stage === "group" ? "组 " + fx.group : fx.stage.toUpperCase();
     return `<div class="mc">
       <div class="mc-head"><span class="badge">${esc(badge)}</span><span class="mc-date">${esc(fx.date)}</span></div>
@@ -88,7 +102,7 @@
       <div class="scorelines">${sl}</div>
       <div class="narr">${bold(fx.narrative)}</div>
       <div class="factors">${facs}</div>
-      ${mk}</div>`;
+      ${mkts}${mk}${injLine(fx.home, fx.flagH)}${injLine(fx.away, fx.flagA)}</div>`;
   }
   function matches() {
     const dates = [...new Set(D.fixtures.map(f => f.date))].sort();
@@ -198,6 +212,48 @@
     </ul>`;
   }
 
+  /* ---------- betting ---------- */
+  function betting() {
+    const vb = (D.betting && D.betting.value_bets) || [];
+    const games = new Set(vb.map(v => v.home + v.away)).size;
+    $("#betting-lead").innerHTML = vb.length
+      ? `模型在未来 <b>${games}</b> 场上识别出 <b>${vb.length}</b> 个「正 EV」边——看起来很诱人。但右侧的历史回测会告诉你为什么别当真:<b>所谓「价值」多是模型在极端对位上的噪声。</b>`
+      : `暂无可用单场赔率来计算价值边。`;
+    $("#value-table").innerHTML = vb.length ? `<table class="vt">
+      <thead><tr><th class="l">比赛 · 选项</th><th>模型</th><th>赔率</th><th>EV</th><th>¼Kelly</th></tr></thead>
+      <tbody>${vb.slice(0, 10).map(v => `<tr><td class="l">${esc(v.pick)}</td><td>${pct(v.model_p, 0)}</td>
+        <td>${v.odds}</td><td class="ev">+${v.ev_pct.toFixed(0)}%</td><td>${(v.kelly_pct / 4).toFixed(1)}%</td></tr>`).join("")}</tbody></table>`
+      : "<p class='dim'>—</p>";
+    const bb = D.credibility.betting_backtest;
+    if (bb && bb.strategies) {
+      $("#bet-backtest").innerHTML =
+        `<div class="trend">要求越高把握(EV 阈值↑),ROI <b>反而越低</b> ⇒ 分歧是噪声、不是信号:</div>` +
+        bb.strategies.map(s => `<div class="roi-bar-row">
+          <span class="nm">${esc(s.name)} <span class="dim">(${s.n_bets}注)</span></span>
+          <span class="rv ${s.roi >= 0 ? "roi-pos" : "roi-neg"}">${100 * s.roi >= 0 ? "+" : ""}${(100 * s.roi).toFixed(1)}%</span></div>`).join("");
+      $("#bet-verdict").innerHTML = `<b>⚠️ 别被正收益骗了。</b> ${esc(bb.note)}`;
+    } else {
+      $("#bet-backtest").innerHTML = "<p class='dim'>需先跑回测。</p>";
+    }
+  }
+
+  /* ---------- mirror (famous predictors) ---------- */
+  function mirror() {
+    const m = D.methodology;
+    if (!m || !m.referents) { const s = $("#mirror"); if (s) s.style.display = "none"; return; }
+    $("#mirror-lesson").textContent = m.key_lesson || "";
+    $("#mirror-grid").innerHTML = m.referents.map(r => `<div class="mr">
+      <div class="mr-who">${esc(r.who)} <span class="mr-tag ${r.credible ? "mr-ok" : "mr-no"}">${r.credible ? "可信方法" : "运气/幸存者偏差"}</span></div>
+      <div class="mr-truth">${esc((r.truth || "").slice(0, 230))}</div>
+      ${r.borrowable ? `<div class="mr-borrow">💡 借鉴：${esc(r.borrowable.slice(0, 150))}</div>` : ""}
+    </div>`).join("");
+    const sp = (D.leaderboard.find(t => t.team === "Spain") || {}).p_champion || 0;
+    $("#crosscheck").innerHTML = `<b>独立方法的趋同 ＞ 任何单一「神预测」。</b> 三套完全独立的方法——
+      <span class="cc-pill">🎮 EA Sports 游戏模拟</span><span class="cc-pill">🏦 Goldman Sachs ≈26%</span><span class="cc-pill">⚙️ 本模型 ${pct(sp, 0)}</span>——
+      都把 <b>西班牙</b> 列为 2026 头号热门。它们共用的配方(Poisson 进球 + Elo + 蒙特卡洛 + 市场集成 + 正确评分 + 多届回测)正是本项目所搭。
+      而「预测 64 场全对」的概率约 3⁻⁶⁴ ≈ 10⁻³⁰——所以「预测世界杯」从来只是「猜中冠军」(一个 5–30% 的单注),别神化任何人或章鱼。`;
+  }
+
   /* ---------- nav ---------- */
   function nav() {
     const tabs = [...document.querySelectorAll(".tab")], secs = tabs.map(t => $(t.getAttribute("href")));
@@ -210,5 +266,5 @@
     secs.forEach(s => s && io.observe(s));
   }
 
-  hero(); champ(); matches(); groups(); live(); cred(); nav();
+  hero(); champ(); matches(); betting(); groups(); live(); cred(); mirror(); nav();
 })();

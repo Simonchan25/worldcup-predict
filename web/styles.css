@@ -192,3 +192,42 @@ main{max-width:var(--maxw);margin:0 auto;padding:8px 20px 40px}
 .mb-row:first-child{border-top:none}
 .mb-win{font-weight:800;font-size:15px}
 .mb-pending{font-size:13px;color:var(--mut);line-height:1.6}
+
+/* in-card markets strip + injuries */
+.mkts{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px}
+.mkt{font-size:11px;background:var(--card2);border:1px solid var(--line);border-radius:7px;padding:3px 8px;color:var(--mut)}
+.mkt b{color:var(--tx);font-variant-numeric:tabular-nums}
+.mkt .fo{color:#9becfb;font-weight:700}
+.inj{font-size:11.5px;color:#ffb3c0;display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.inj .ic{flex-shrink:0}
+
+/* betting section */
+.bet-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bet-card{padding:18px}
+.vt{width:100%;border-collapse:collapse;font-size:12.5px}
+.vt th{font-size:10px;text-transform:uppercase;color:var(--dim);font-weight:600;padding:5px 4px;text-align:right;border-bottom:1px solid var(--line)}
+.vt th.l,.vt td.l{text-align:left}
+.vt td{padding:6px 4px;text-align:right;font-variant-numeric:tabular-nums;border-top:1px solid var(--line)}
+.vt .ev{color:#5ef2c4;font-weight:700}
+.roi-pos{color:#5ef2c4;font-weight:700} .roi-neg{color:#ffa1b4;font-weight:700}
+.roi-bar-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
+.roi-bar-row:first-child{border-top:none}
+.roi-bar-row .nm{flex:1;color:var(--mut)}
+.roi-bar-row .rv{width:60px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.verdict{margin-top:14px;font-size:12.5px;color:#ffd9e0;background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.25);border-radius:10px;padding:12px 14px;line-height:1.6}
+.verdict b{color:#fff}
+.trend{font-size:12px;color:var(--mut);margin:8px 0 2px}
+.trend b{color:#ffa1b4}
+
+/* mirror section */
+.mirror-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.mr{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.mr-who{font-weight:750;font-size:15px;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mr-tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px}
+.mr-ok{color:#5ef2c4;background:rgba(34,211,238,.12)} .mr-no{color:#ffa1b4;background:rgba(251,113,133,.12)}
+.mr-truth{font-size:12.5px;color:var(--mut);line-height:1.55}
+.mr-borrow{font-size:12px;color:#9becfb;margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.crosscheck{margin-top:16px;padding:18px;font-size:14px;line-height:1.7}
+.crosscheck b{color:#fff}
+.cc-pill{display:inline-flex;align-items:center;gap:6px;font-weight:700;background:var(--card2);border:1px solid var(--line2);border-radius:999px;padding:4px 12px;margin:0 4px}
+@media(max-width:680px){.bet-cols{grid-template-columns:1fr}}
