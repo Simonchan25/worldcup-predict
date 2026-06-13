@@ -9,9 +9,13 @@ short prose narrative. Nothing here is hand-waved; every sentence is computed.
 """
 from __future__ import annotations
 
-import pandas as pd
+import re
 
-from . import market
+import numpy as np
+import pandas as pd
+from scipy.stats import poisson
+
+from . import backtest, market, model
 
 FLAGS = {
     "Mexico": "🇲🇽", "South Africa": "🇿🇦", "South Korea": "🇰🇷", "Czech Republic": "🇨🇿",
@@ -178,6 +182,51 @@ def _score_breakdown(mk: dict) -> dict:
     return {"top": cs[:8], "by_result": best}
 
 
+def build_schedule(schedule: list, all_fixtures) -> list[dict]:
+    """Full fixture list: every match with actual result (if played) and the
+    model's prediction (concrete most-likely scoreline + 1X2)."""
+    pred = {r.get("n"): r for r in all_fixtures.to_dict("records")} if all_fixtures is not None else {}
+    out = []
+    for m in schedule:
+        n = m.get("n")
+        home, away = str(m.get("home")), str(m.get("away"))
+        ko_slot = m.get("stage") != "group" and home not in FLAGS
+        e = {"n": n, "date": m.get("date"), "stage": m.get("stage"), "group": m.get("group"),
+             "venue": m.get("venue_country", ""), "status": m.get("status", "scheduled"),
+             "home": home, "away": away, "flagH": flag(home) if home in FLAGS else "",
+             "flagA": flag(away) if away in FLAGS else "", "ko_slot": ko_slot}
+        if m.get("status") == "played" and m.get("home_score") is not None:
+            e["actual"] = f"{int(m['home_score'])}-{int(m['away_score'])}"
+            e["actual_outcome"] = ("home" if m["home_score"] > m["away_score"]
+                                   else "draw" if m["home_score"] == m["away_score"] else "away")
+        p = pred.get(n)
+        if p and p.get("home") in FLAGS and p.get("away") in FLAGS:
+            sb = _score_breakdown(p.get("markets"))
+            top = (sb.get("top") or [{}])[0]
+            probs = {"home": p["p_home"], "draw": p["p_draw"], "away": p["p_away"]}
+            pick = max(probs, key=probs.get)
+            e.update(home=p["home"], away=p["away"], flagH=flag(p["home"]), flagA=flag(p["away"]))
+            e["pred"] = {"p_home": p["p_home"], "p_draw": p["p_draw"], "p_away": p["p_away"],
+                         "pick": pick, "pick_p": probs[pick], "score": top.get("score", ""),
+                         "lambda_h": p["lambda_h"], "lambda_a": p["lambda_a"]}
+            if "actual_outcome" in e:
+                e["pred_hit"] = int(pick == e["actual_outcome"])
+        out.append(e)
+    return out
+
+
+def build_recommendations(value_bets, bankroll: int = 1000) -> list[dict]:
+    """Turn positive-EV edges into concrete buy suggestions: ¼-Kelly stake and
+    the model's expected return. (Honesty lives in the UI banner — the
+    historical betting backtest shows these don't beat the closing line.)"""
+    recs = []
+    for v in (value_bets or [])[:12]:
+        stake = round(bankroll * (v["kelly_pct"] / 100.0) * 0.25, 1)
+        recs.append({**v, "stake": stake, "exp_return": round(stake * v["ev_pct"] / 100.0, 1),
+                     "payout": round(stake * v["odds"], 1)})
+    return recs
+
+
 def _top_scores_list(s: str) -> list[dict]:
     out = []
     for chunk in str(s).split("; "):
@@ -215,11 +264,135 @@ def _group_standings(groups, schedule):
             for g, s in tables.items()}
 
 
+_RE_RANK = re.compile(r"^([12])([A-L])$")
+_RE_THIRD = re.compile(r"^3:([A-L]+|\*)$")
+_RE_WL = re.compile(r"^([WL]):?(\d+)$")
+
+
+def ko_matchup(home, away, venue, ratings, params, max_goals: int = 10) -> dict:
+    """Model probabilities for a knockout tie between two concrete teams,
+    resolved exactly the way the simulator does: regulation from the
+    Dixon-Coles grid, a draw goes to extra time (independent Poisson at a third
+    of the 90' rate) and then a 50/50 shootout. Returns home/away advance
+    probabilities plus the most-likely regulation scoreline."""
+    swapped = away in HOSTS and away == venue and home != venue
+    if swapped:
+        a, b, flag = away, home, 1
+    else:
+        a, b = home, away
+        flag = 1 if (home in HOSTS and home == venue) else 0
+    m, lh, la = model.score_matrix(ratings[a], ratings[b], params, home=float(flag))
+    p_a = float(np.tril(m, -1).sum())          # a wins in regulation
+    p_d = float(np.trace(m))
+    g = np.arange(max_goals + 1)
+    et = np.outer(poisson.pmf(g, lh / 3.0), poisson.pmf(g, la / 3.0))
+    et_a, et_d = float(np.tril(et, -1).sum()), float(np.trace(et))
+    adv_a = p_a + p_d * (et_a + 0.5 * et_d)    # advance = reg win + draw→ET/pens
+    idx = int(np.argmax(m))
+    si, sj = idx // m.shape[1], idx % m.shape[1]
+    if swapped:                                 # a is the displayed away side
+        return {"p_home_adv": round(1 - adv_a, 4), "p_away_adv": round(adv_a, 4),
+                "score": f"{sj}-{si}"}
+    return {"p_home_adv": round(adv_a, 4), "p_away_adv": round(1 - adv_a, 4),
+            "score": f"{si}-{sj}"}
+
+
+def build_bracket(sim, adv, ratings, params) -> dict:
+    """Projected knockout bracket: fill each slot with the model's most-likely
+    occupant (group winners/runners-up by P(finish 1st/2nd), best thirds by
+    P(qualify as third)), then let the favourite advance round by round. Each
+    node carries that matchup's advance probabilities. Honest framing: this is
+    the *modal-per-match* path, not the single most-likely whole bracket — the
+    headline champion probabilities come from the full simulation."""
+    advm = {r["team"]: r for r in adv.to_dict("records")}
+    pf = lambda t, k: advm.get(t, {}).get(k, 0.0)
+    g1, g2, third_of = {}, {}, {}
+    for g, teams in sim.groups.items():
+        ranked = sorted(teams, key=lambda t: -pf(t, "p_first"))
+        g1[g] = ranked[0]
+        rest = sorted(ranked[1:], key=lambda t: -pf(t, "p_second"))
+        g2[g] = rest[0]
+        third_of[g] = max(rest[1:], key=lambda t: pf(t, "p_qual3")) if len(rest) > 1 else rest[0]
+    top_groups = sorted(sim.groups, key=lambda g: -pf(third_of[g], "p_qual3"))[:8]
+    third_assign = sim.allocate_thirds({g: third_of[g] for g in top_groups})
+
+    win, lose = {}, {}
+
+    def resolve(code, n):
+        code = str(code)
+        rk = _RE_RANK.match(code)
+        if rk:
+            return (g1 if rk.group(1) == "1" else g2).get(rk.group(2))
+        if _RE_THIRD.match(code):
+            return third_assign.get(n)
+        wl = _RE_WL.match(code)
+        if wl:
+            src = int(wl.group(2))
+            return win.get(src) if wl.group(1) == "W" else lose.get(src)
+        return code if code in ratings else None
+
+    by_stage = {}
+    for m in sim.ko_template:                   # already sorted by round then n
+        n, stage, venue = m["n"], m["stage"], m.get("venue_country", "")
+        played = (m.get("status") == "played" and str(m["home"]) in ratings
+                  and m.get("home_score") is not None)
+        if played:
+            h, a = str(m["home"]), str(m["away"])
+        else:
+            h, a = resolve(m["home"], n), resolve(m["away"], n)
+        node = {"n": n, "stage": stage, "home": h, "away": a,
+                "flagH": flag(h) if h else "", "flagA": flag(a) if a else "",
+                "home_code": str(m["home"]), "away_code": str(m["away"]),
+                "venue": venue, "date": m.get("date"), "played": played}
+        if h and a and h in ratings and a in ratings:
+            if played:
+                hs, as_ = int(m["home_score"]), int(m["away_score"])
+                wn = m.get("winner")
+                w = h if hs > as_ else a if as_ > hs else (wn if wn in (h, a) else h)
+                node["actual"] = f"{hs}-{as_}"
+                node["p_home_adv"] = 1.0 if w == h else 0.0
+                node["p_away_adv"] = 1.0 if w == a else 0.0
+            else:
+                mm = ko_matchup(h, a, venue, ratings, params)
+                node.update(mm)
+                w = h if mm["p_home_adv"] >= mm["p_away_adv"] else a
+            win[n], lose[n] = w, (a if w == h else h)
+        by_stage.setdefault(stage, []).append(node)
+    order = ["r32", "r16", "qf", "sf", "final", "third"]
+    champion = win.get(sim.ko_template[-1]["n"]) if sim.ko_template else None
+    # the final is the highest-round non-third match
+    final_n = next((m["n"] for m in reversed(sim.ko_template) if m["stage"] == "final"), None)
+    return {"rounds": [{"stage": s, "matches": by_stage[s]} for s in order if s in by_stage],
+            "projected_champion": win.get(final_n), "g1": g1, "g2": g2}
+
+
+def live_scoreboard(live) -> dict | None:
+    """Honest running skill check on matches already played this tournament:
+    model RPS vs the uniform baseline, plus how often the model's most-likely
+    call landed. Tiny sample — surfaced with that caveat in the UI."""
+    if live is None or not len(live):
+        return None
+    idx = {"H": 0, "D": 1, "A": 2}
+    rps_model, rps_unif = [], []
+    for r in live.itertuples(index=False):
+        o = idx[r.outcome]
+        rps_model.append(backtest.rps([r.p_home, r.p_draw, r.p_away], o))
+        rps_unif.append(backtest.rps([1 / 3, 1 / 3, 1 / 3], o))
+    n = len(rps_model)
+    return {
+        "n": n,
+        "rps_model": round(float(np.mean(rps_model)), 4),
+        "rps_uniform": round(float(np.mean(rps_unif)), 4),
+        "calls_hit": int(live["fav_hit"].sum()),
+        "beats_uniform": float(np.mean(rps_model)) < float(np.mean(rps_unif)),
+    }
+
+
 def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, values,
                  fixtures, live, adv, market_outright, fixtures_market, fit, blend_info,
                  bt_summary, calibration, calibration_ece, market_beat, sources,
                  betting_backtest=None, value_bets=None, injuries=None, methodology=None,
-                 live_odds=None):
+                 live_odds=None, all_fixtures=None, referees=None, bracket=None):
     advm = {r["team"]: r for r in adv.to_dict("records")}
     mkt_map = {}
     if market_outright is not None:
@@ -240,6 +413,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "team": r["team"], "flag": flag(r["team"]), "group": team_group.get(r["team"]),
         "p_r32": r["p_r32"], "p_r16": r["p_r16"], "p_qf": r["p_qf"], "p_sf": r["p_sf"],
         "p_final": r["p_final"], "p_champion": r["p_champion"],
+        "p_first": r.get("p_first"), "p_second": r.get("p_second"), "p_qual3": r.get("p_qual3"),
     } for r in adv.to_dict("records")]
 
     standings = _group_standings(groups, schedule)
@@ -248,6 +422,9 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         groups_out[g] = [{
             "team": t, "flag": flag(t), "elo": round(ratings_elo.get(t, 0), 0),
             "value": values.get(t), "p_advance": advm.get(t, {}).get("p_r32"),
+            "p_first": advm.get(t, {}).get("p_first"),
+            "p_second": advm.get(t, {}).get("p_second"),
+            "p_qual3": advm.get(t, {}).get("p_qual3"),
         } for t in teams]
 
     fmkt = {}
@@ -288,6 +465,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             "odds_compare": odds_compare({**fx, "p_home": fx["p_home"], "p_draw": fx["p_draw"],
                                           "p_away": fx["p_away"]}, live_map.get((H, A))),
             "score_breakdown": _score_breakdown(fx.get("markets")),
+            "referee": (referees or {}).get("by_match", {}).get(f"{H}|{A}"),
         })
 
     # best picks — model's most confident calls, ranked by max outcome prob
@@ -309,13 +487,16 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
     best_picks.sort(key=lambda x: -x["pick_p"])
 
     live_out = []
+    idx3 = {"H": 0, "D": 1, "A": 2}
     if live is not None and len(live):
         for r in live.to_dict("records"):
             live_out.append({
+                "n": r.get("n"), "stage": r.get("stage"), "group": r.get("group"),
                 "date": r["date"], "home": r["home"], "away": r["away"],
                 "flagH": flag(r["home"]), "flagA": flag(r["away"]),
                 "actual": r["actual"], "p_home": r["p_home"], "p_draw": r["p_draw"],
-                "p_away": r["p_away"], "outcome": r["outcome"], "rps": r["rps"],
+                "p_away": r["p_away"], "outcome": r["outcome"], "rps": round(r["rps"], 4),
+                "rps_uniform": round(backtest.rps([1 / 3, 1 / 3, 1 / 3], idx3[r["outcome"]]), 4),
                 "fav_hit": int(r["fav_hit"]),
             })
 
@@ -350,8 +531,13 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "standings": standings,
         "fixtures": fixtures_out,
         "live": live_out,
+        "live_scoreboard": live_scoreboard(live),
+        "bracket": bracket,
         "credibility": credibility,
-        "betting": {"value_bets": value_bets or [], "backtest": betting_backtest},
+        "betting": {"value_bets": value_bets or [], "backtest": betting_backtest,
+                    "recommendations": build_recommendations(value_bets)},
+        "schedule_full": build_schedule(schedule, all_fixtures),
+        "referees": referees or {},
         "best_picks": best_picks,
         "elo_trend": {"teams": [t["team"] for t in leaderboard[:6]],
                       "flags": {t["team"]: t["flag"] for t in leaderboard[:6]},

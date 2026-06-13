@@ -70,10 +70,10 @@ def main():
     fixtures.to_csv(out / "match_predictions.csv", index=False)
     print(f"== {len(fixtures)} upcoming fixtures predicted ==")
 
-    # 4b. live out-of-sample check: model vs realized on already-played matches
-    live = simulate.predict_fixtures(
+    # 4b. predictions for ALL dated matches (schedule view + live check)
+    all_pred = simulate.predict_fixtures(
         wc["schedule"], ratings, params, "2026-06-01", "2026-08-01")
-    live = live[live["status"] == "played"].copy()
+    live = all_pred[all_pred["status"] == "played"].copy()
     if len(live):
         live["actual"] = (live["home_score"].astype(int).astype(str) + "-"
                           + live["away_score"].astype(int).astype(str))
@@ -199,6 +199,8 @@ def main():
                    if (data.WC / "methodology.json").exists() else None)
     live_odds = (json.loads((data.WC / "odds_live.json").read_text(encoding="utf-8"))
                  if (data.WC / "odds_live.json").exists() else None)
+    referees = (json.loads((data.WC / "referees.json").read_text(encoding="utf-8"))
+                if (data.WC / "referees.json").exists() else None)
     ctx = {
         "asof": str(today.date()),
         "n_sims": args.sims,
@@ -244,7 +246,8 @@ def main():
         bt_summary=bt_summary, calibration=calibration,
         calibration_ece=(backtest.ece(calibration) if calibration is not None else None),
         market_beat=market_beat, betting_backtest=betting_bt, value_bets=value_bets,
-        injuries=injuries, methodology=methodology, live_odds=live_odds, sources=sources)
+        injuries=injuries, methodology=methodology, live_odds=live_odds,
+        all_fixtures=all_pred, referees=referees, sources=sources)
     web_dir = data.ROOT / "web"
     web_dir.mkdir(exist_ok=True)
     (web_dir / "data.js").write_text(

@@ -1,61 +1,62 @@
-/* World Cup probability dashboard — router + views over window.WC_DATA */
+/* World Cup probability dashboard — clean, flat, router over window.WC_DATA */
 (function () {
   const D = window.WC_DATA;
   const $ = (s, r = document) => r.querySelector(s);
   if (!D) { document.body.innerHTML = "<p style='padding:40px'>data.js 未加载</p>"; return; }
   const pct = (x, d = 1) => (x == null ? "—" : (100 * x).toFixed(d) + "%");
-  const esc = s => String(s == null ? "" : s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   const fo = p => (1 / Math.max(p, 1e-6)).toFixed(2);
+  const sc = s => String(s || "").replace("-", " – ");
   const INJ = D.injuries || {};
-  const PALETTE = ["#22d3ee", "#3b82f6", "#a855f7", "#f472b6", "#34d399", "#fbbf24", "#fb7185", "#94a3b8", "#38bdf8", "#c084fc"];
+  const PAL = ["#10b981", "#3b82f6", "#a78bfa", "#f472b6", "#fbbf24", "#22d3ee"];
 
   const NAV = [
-    ["home", "🏠", "首页"], ["matches", "⚽", "比赛预测"], ["score", "🎯", "比分预测"],
-    ["odds", "💱", "赔率比较"], ["picks", "⭐", "最佳选择"], ["groups", "📊", "小组形势"],
-    ["analytics", "🔬", "数据分析"], ["mirror", "🔮", "照妖镜"],
+    ["home", "🏠", "首页"], ["schedule", "📅", "赛程"], ["matches", "⚽", "比赛预测"],
+    ["score", "🎯", "比分预测"], ["picks", "⭐", "最佳选择"], ["bet", "💰", "赔率与买入"],
+    ["groups", "📊", "小组"], ["analytics", "🔬", "数据分析"],
   ];
+  const upcoming = () => D.fixtures.slice().sort((a, b) => a.date.localeCompare(b.date));
 
-  /* ---------- shell chrome ---------- */
   function chrome() {
     $("#topnav").innerHTML = NAV.map(([id, , l]) => `<a href="#${id}" data-v="${id}">${esc(l)}</a>`).join("");
     $("#sidenav").innerHTML = NAV.map(([id, ic, l]) => `<a href="#${id}" data-v="${id}"><span class="ic">${ic}</span>${esc(l)}</a>`).join("");
-    $("#asof-chip").textContent = "数据更新 " + D.meta.asof;
+    $("#asof-chip").textContent = "数据 " + D.meta.asof;
     const lo = D.live_odds;
-    $("#live-chip").textContent = lo ? `实时赔率 ${lo.asof || ""}` : "";
-    if (!lo) $("#live-chip").style.display = "none";
-    $("#side-update").innerHTML = `本届数据：${D.meta.asof}<br>实时赔率：${lo ? esc(lo.asof) : "—"}<br>模拟：${D.meta.n_sims.toLocaleString()} 次`;
-    $("#foot-line").innerHTML += ` · 模型 b0=${D.meta.fit.b0} b1=${D.meta.fit.b1} ρ=${D.meta.fit.rho}`;
+    if (lo) $("#live-chip").textContent = "实时赔率 " + (lo.asof || ""); else $("#live-chip").style.display = "none";
+    $("#side-update").innerHTML = `本届数据 ${D.meta.asof}<br>实时赔率 ${lo ? esc(lo.asof) : "—"}<br>${D.meta.n_sims.toLocaleString()} 次模拟`;
   }
 
-  /* ---------- match card (shared) ---------- */
+  /* ---------- match card ---------- */
   function formDots(form) {
     return `<span class="form-dots">${(form || []).slice(-5).map(f => `<span class="fdot f${f.res}" title="${esc(f.date)} ${esc(f.opp)} ${f.gf}-${f.ga}">${f.res}</span>`).join("")}</span>`;
   }
+  function refLine(r) {
+    if (!r) return "";
+    const stats = [r.y != null ? `黄 ${r.y}` : "", r.pen != null ? `点球 ${r.pen}/场` : ""].filter(Boolean).join(" · ");
+    return `<div class="ref-line"><span class="ic">🧑‍⚖️</span><span>主裁 <b>${esc(r.referee)}</b>（${esc(r.nat || "")}）${stats ? "· " + stats : ""}${r.style ? "<br><span class='dim'>" + esc(r.style.slice(0, 90)) + "</span>" : ""}</span></div>`;
+  }
   function matchCard(fx) {
     const ph = fx.p_home, pdr = fx.p_draw, pa = fx.p_away;
-    const seg = (w, c, l) => `<span class="${c}" style="width:${100 * w}%">${100 * w >= 12 ? l : ""}</span>`;
+    const seg = (w, c, l) => `<span class="${c}" style="width:${100 * w}%">${100 * w >= 13 ? l : ""}</span>`;
     const facs = (fx.factors || []).filter(f => f.label !== "近期状态").map(f =>
       `<div class="fac lean-${f.lean}"><span class="dot"></span><span class="fl">${esc(f.label)}</span><span class="fd">${esc(f.detail)}</span></div>`).join("");
+    const top = (fx.top_scores || [{}])[0];
     const sl = (fx.top_scores || []).slice(0, 3).map(s => `<span class="sl">${esc(s.score)}<small>${esc(s.p)}</small></span>`).join("");
     const m = fx.markets;
     const mkts = m ? `<div class="mkts">
       <span class="mkt">大 2.5 <b>${pct(m.over_under["2.5"].over, 0)}</b></span>
       <span class="mkt">双方进球 <b>${pct(m.btts.yes, 0)}</b></span>
-      <span class="mkt">主 -1.5 <b>${pct(m.ah["-1.5"].p_home, 0)}</b></span>
+      <span class="mkt">预期 <b>${fx.lambda_h.toFixed(1)}–${fx.lambda_a.toFixed(1)}</b></span>
       <span class="mkt">公平赔率 <span class="fo">${fo(ph)}/${fo(pdr)}/${fo(pa)}</span></span></div>` : "";
-    const oc = (fx.odds_compare || []).find(r => r.market === "胜平负");
-    const mk = oc ? `<div class="mc-market"><span>实时赔率</span><div class="mm-bar">
-        <i class="mm-h" style="width:${100 * (1 / fx.odds_compare[0].book)}%"></i></div>
-        <span>书 ${fx.odds_compare.filter(r => r.market === "胜平负").map(r => r.book).join("/")}</span></div>` : "";
     const injLine = (t, fl) => { const it = INJ[t]; if (!it || !it.length) return "";
-      return `<div class="inj"><span class="ic">🩹</span><span>${fl} ${esc(t)} 缺阵/存疑：${it.slice(0, 3).map(x => esc(x.player) + (x.status && x.status !== "out" ? `(${esc(x.status)})` : "")).join("、")}${it.length > 3 ? " 等" : ""}</span></div>`; };
+      return `<div class="inj"><span class="ic">🩹</span><span>${fl} ${esc(t)}：${it.slice(0, 3).map(x => esc(x.player) + (x.status && x.status !== "out" ? `(${esc(x.status)})` : "")).join("、")}${it.length > 3 ? " 等" : ""}</span></div>`; };
     const badge = fx.stage === "group" ? "组 " + fx.group : String(fx.stage).toUpperCase();
     return `<div class="mc">
       <div class="mc-head"><span class="badge">${esc(badge)}</span><span class="mc-date">${esc(fx.date)}</span></div>
       <div class="mc-teams">
         <div class="mc-team home"><span class="fn">${fx.flagH} ${esc(fx.home)}</span><span class="elo">Elo ${fx.elo_h} ${formDots(fx.form_h)}</span></div>
-        <div class="mc-xg">${fx.lambda_h.toFixed(1)}–${fx.lambda_a.toFixed(1)}<small>预期</small></div>
+        <div class="mc-pred-score">${sc(top.score)}<small>预测比分</small></div>
         <div class="mc-team away"><span class="fn">${esc(fx.away)} ${fx.flagA}</span><span class="elo">${formDots(fx.form_a)} Elo ${fx.elo_a}</span></div>
       </div>
       <div class="wdl">${seg(ph, "win", pct(ph, 0))}${seg(pdr, "draw", pct(pdr, 0))}${seg(pa, "loss", pct(pa, 0))}</div>
@@ -63,111 +64,110 @@
       <div class="scorelines">${sl}</div>
       <div class="narr">${bold(fx.narrative)}</div>
       <div class="factors">${facs}</div>
-      ${mkts}${mk}${injLine(fx.home, fx.flagH)}${injLine(fx.away, fx.flagA)}</div>`;
+      ${mkts}${refLine(fx.referee)}${injLine(fx.home, fx.flagH)}${injLine(fx.away, fx.flagA)}</div>`;
   }
-  const upcoming = () => D.fixtures.slice().sort((a, b) => a.date.localeCompare(b.date));
 
   /* ---------- HOME ---------- */
   function homeHTML() {
     const all = D.credibility.backtest.find(x => x.wc === "all") || {};
-    const stats = [["🏳️", D.meta.tournament.teams, "参赛球队"], ["📅", "104", "比赛场次"],
-      ["📈", (D.meta.n_sims / 1000) + "k+", "模拟次数"], ["🎯", (all.rps_model || 0).toFixed(3), "回测 RPS（越低越好）"]];
-    const feats = [["🧬", "多维数据", "Elo·状态·市值·赛程·伤停"], ["🧠", "统计 + ML", "Dixon-Coles 双泊松 + Elo 回归"],
-      ["🛡️", "大量模拟", "5 万次蒙特卡洛 + 多届回测"], ["⏱️", "实时更新", "the-odds-api 实时赔率对标"]];
+    const stats = [[D.meta.tournament.teams, "参赛球队"], ["104", "比赛场次"], [(D.meta.n_sims / 1000) + "k", "模拟次数"], [(all.rps_model || 0).toFixed(3), "回测 RPS · 越低越好"]];
+    const feats = [["多维数据", "Elo · 状态 · 市值 · 伤停 · 裁判"], ["统计 + ML", "Dixon-Coles 双泊松 + Elo"], ["大量模拟", "5 万次蒙特卡洛 + 多届回测"], ["实时更新", "the-odds-api 赔率对标"]];
     return `<section class="view" id="view-home">
-      <div class="hero"><div class="tag">FIFA WORLD CUP 2026 · 🇺🇸 🇨🇦 🇲🇽</div>
-        <h1>世界杯夺冠概率预测</h1>
-        <p>基于大数据与统计/机器学习模型的专业预测分析。数据更新于 <b>${D.meta.asof}</b>，赛事 ${esc(D.meta.tournament.dates)}。</p></div>
-      <div class="stats">${stats.map(([i, v, k]) => `<div class="stat"><div class="si">${i}</div><div><div class="sv">${v}</div><div class="sk">${esc(k)}</div></div></div>`).join("")}</div>
+      <div class="hero"><div class="tag">FIFA WORLD CUP 2026 · 美国 加拿大 墨西哥</div><h1>世界杯夺冠概率预测</h1>
+        <p>多维数据 + Dixon-Coles 双泊松 + 5 万次蒙特卡洛模拟。基准是<b>对标赔率的概率校准（RPS）</b>，不是「猜中率」。数据更新于 ${D.meta.asof}。</p></div>
+      <div class="stats">${stats.map(([v, k]) => `<div class="stat"><div class="sv">${v}</div><div class="sk">${esc(k)}</div></div>`).join("")}</div>
       <div class="home-grid">
         <div class="col">
           <div class="panel"><div class="p-title">夺冠概率 TOP 10 <span class="more" data-go="picks">完整排名 →</span></div>
-            <div class="champ-flex"><div class="cbars" id="champ-bars"></div>
-              <div class="donut-wrap"><div class="donut" id="donut"></div><div class="legend" id="donut-legend"></div></div></div></div>
-          <div class="panel"><div class="p-title">实力评分（Elo）走势 · 头部球队近 16 个月</div>
-            <svg class="trend-svg" id="trend-svg" viewBox="0 0 720 230"></svg><div class="trend-legend" id="trend-legend"></div></div>
+            <div class="champ-flex"><div class="cbars" id="champ-bars"></div><div class="donut-wrap"><div class="donut" id="donut"></div><div class="legend" id="donut-legend"></div></div></div></div>
+          <div class="panel"><div class="p-title">实力评分（Elo）走势 · 头部球队近 16 个月</div><svg class="trend-svg" id="trend-svg" viewBox="0 0 720 220"></svg><div class="trend-legend" id="trend-legend"></div></div>
         </div>
         <div class="col">
-          <div class="panel"><div class="p-title">球队夺冠概率排行 <span class="more" data-go="picks">查看全部 →</span></div><table class="rank-t" id="rank-table"></table></div>
-          <div class="panel"><div class="p-title">近期重点比赛 <span class="more" data-go="matches">查看全部 →</span></div><div id="recent-matches"></div></div>
-          <div class="panel"><div class="p-title">预测模型优势</div><div class="feats">${feats.map(([i, t, d]) => `<div class="feat"><div class="fi">${i}</div><div class="ft">${esc(t)}</div><div class="fd">${esc(d)}</div></div>`).join("")}</div></div>
+          <div class="panel"><div class="p-title">夺冠概率排行 <span class="more" data-go="picks">全部 →</span></div><table class="rank-t" id="rank-table"></table></div>
+          <div class="panel"><div class="p-title">近期比赛 <span class="more" data-go="schedule">赛程 →</span></div><div id="recent-matches"></div></div>
+          <div class="panel"><div class="p-title">模型如何工作</div><div class="feats">${feats.map(([t, d]) => `<div class="feat"><div class="ft">${esc(t)}</div><div class="fd">${esc(d)}</div></div>`).join("")}</div></div>
         </div></div></section>`;
   }
   function homePost() {
     const lb = [...D.leaderboard].sort((a, b) => b.p_champion - a.p_champion);
     const top = lb.slice(0, 10), mx = top[0].p_champion;
-    $("#champ-bars").innerHTML = top.map((t, i) => `<div class="cbar"><span class="rk">${i + 1}</span><span class="fl">${t.flag}</span>
-      <div><div class="nm">${esc(t.team)}</div><div class="track"><span class="fill" style="width:${100 * t.p_champion / mx}%"></span></div></div>
-      <span class="pv">${pct(t.p_champion)}</span></div>`).join("");
-    drawDonut($("#donut"), top.slice(0, 8), lb);
+    $("#champ-bars").innerHTML = top.map((t, i) => `<div class="cbar"><span class="rk">${i + 1}</span><span class="fl">${t.flag}</span><div><div class="nm">${esc(t.team)}</div><div class="track"><span class="fill" style="width:${100 * t.p_champion / mx}%"></span></div></div><span class="pv">${pct(t.p_champion)}</span></div>`).join("");
+    drawDonut($("#donut"), top.slice(0, 8));
     drawTrend();
-    // ranking table
-    $("#rank-table").innerHTML = `<thead><tr><th class="l">排名 / 球队</th><th>夺冠概率</th><th>vs市场</th></tr></thead><tbody>` +
-      lb.slice(0, 8).map((t, i) => {
-        const d = t.diff;
-        const tr = d == null ? `<span class="trend-eq">—</span>` : d > 0.003 ? `<span class="trend-up">▲${(100 * d).toFixed(1)}</span>` : d < -0.003 ? `<span class="trend-dn">▼${(100 * -d).toFixed(1)}</span>` : `<span class="trend-eq">—</span>`;
-        return `<tr><td class="l tm"><span class="rkn">${i + 1}</span>${t.flag} ${esc(t.team)}</td><td><b>${pct(t.p_champion)}</b></td><td>${tr}</td></tr>`;
-      }).join("") + `</tbody>`;
-    // recent matches
+    $("#rank-table").innerHTML = `<thead><tr><th class="l">排名 / 球队</th><th>夺冠</th><th>vs市场</th></tr></thead><tbody>` + lb.slice(0, 8).map((t, i) => {
+      const d = t.diff, tr = d == null ? `<span class="trend-eq">—</span>` : d > 0.003 ? `<span class="trend-up">▲${(100 * d).toFixed(1)}</span>` : d < -0.003 ? `<span class="trend-dn">▼${(100 * -d).toFixed(1)}</span>` : `<span class="trend-eq">—</span>`;
+      return `<tr><td class="l tm"><span class="rkn">${i + 1}</span>${t.flag} ${esc(t.team)}</td><td><b>${pct(t.p_champion)}</b></td><td>${tr}</td></tr>`; }).join("") + `</tbody>`;
     $("#recent-matches").innerHTML = upcoming().slice(0, 5).map(fx => {
-      const pk = fx.p_home >= fx.p_away ? [fx.home, fx.p_home, "胜"] : [fx.away, fx.p_away, "胜"];
-      return `<div class="rmatch"><span class="rm-d">${esc(fx.date)}</span>
-        <span class="rm-t">${fx.flagH} ${esc(fx.home)} <span class="dim">vs</span> ${esc(fx.away)} ${fx.flagA}</span>
-        <span class="rm-r">${esc(pk[0])} ${pct(pk[1], 0)}</span></div>`;
-    }).join("");
+      const w = fx.p_home >= fx.p_away ? [fx.home, fx.p_home] : [fx.away, fx.p_away];
+      return `<div class="rmatch"><span class="rm-d">${esc(fx.date.slice(5))}</span><span class="rm-t">${fx.flagH} ${esc(fx.home)} <span class="dim">${sc((fx.top_scores[0] || {}).score)}</span> ${esc(fx.away)} ${fx.flagA}</span><span class="rm-r">${esc(w[0])} ${pct(w[1], 0)}</span></div>`; }).join("");
   }
-  function drawDonut(el, top, lb) {
+  function drawDonut(el, top) {
     const others = Math.max(0, 1 - top.reduce((s, t) => s + t.p_champion, 0));
-    const segs = top.map((t, i) => ({ name: t.team, flag: t.flag, v: t.p_champion, c: PALETTE[i % PALETTE.length] }));
-    if (others > 0.001) segs.push({ name: "其他", v: others, c: "#3a425a", flag: "" });
-    const R = 100, r = 64, cx = 115, cy = 115; let ang = -Math.PI / 2; const arcs = [];
-    segs.forEach(s => {
-      const a2 = ang + s.v * 2 * Math.PI;
+    const segs = top.map((t, i) => ({ name: t.team, flag: t.flag, v: t.p_champion, c: i < PAL.length ? PAL[i] : "#3a4150" }));
+    if (others > 0.001) segs.push({ name: "其他", v: others, c: "#363b46", flag: "" });
+    const R = 92, r = 60, cx = 100, cy = 100; let ang = -Math.PI / 2; const arcs = [];
+    segs.forEach(s => { const a2 = ang + s.v * 2 * Math.PI;
       const x1 = cx + R * Math.cos(ang), y1 = cy + R * Math.sin(ang), x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2);
       const xi2 = cx + r * Math.cos(a2), yi2 = cy + r * Math.sin(a2), xi1 = cx + r * Math.cos(ang), yi1 = cy + r * Math.sin(ang);
       const lg = (a2 - ang) > Math.PI ? 1 : 0;
-      arcs.push(`<path d="M${x1} ${y1} A${R} ${R} 0 ${lg} 1 ${x2} ${y2} L${xi2} ${yi2} A${r} ${r} 0 ${lg} 0 ${xi1} ${yi1} Z" fill="${s.c || "#3a425a"}"/>`);
-      ang = a2;
-    });
-    const lead = segs[0];
-    el.innerHTML = `<svg viewBox="0 0 230 230" width="230" height="230">${arcs.join("")}</svg>
-      <div class="ctr"><div class="t">${lead.flag} ${esc(lead.name)}</div><div class="v">${pct(lead.v)}</div><div class="s">夺冠概率</div></div>`;
-    $("#donut-legend").innerHTML = segs.map(s => `<span><i style="background:${s.c || "#3a425a"}"></i>${esc(s.name)}</span>`).join("");
+      arcs.push(`<path d="M${x1} ${y1} A${R} ${R} 0 ${lg} 1 ${x2} ${y2} L${xi2} ${yi2} A${r} ${r} 0 ${lg} 0 ${xi1} ${yi1} Z" fill="${s.c}"/>`); ang = a2; });
+    el.innerHTML = `<svg viewBox="0 0 200 200" width="200" height="200">${arcs.join("")}</svg><div class="ctr"><div class="t">${segs[0].flag} ${esc(segs[0].name)}</div><div class="v">${pct(segs[0].v)}</div><div class="s">夺冠概率</div></div>`;
+    $("#donut-legend").innerHTML = segs.map(s => `<span><i style="background:${s.c}"></i>${esc(s.name)}</span>`).join("");
   }
   function drawTrend() {
     const et = D.elo_trend; if (!et || !et.teams.length) return;
-    const svg = $("#trend-svg"), W = 720, H = 230, pad = { l: 38, r: 12, t: 12, b: 22 };
+    const W = 720, H = 220, pad = { l: 36, r: 10, t: 10, b: 20 };
     let allE = [], maxLen = 0;
-    et.teams.forEach(t => { (et.series[t] || []).forEach(p => allE.push(p.elo)); maxLen = Math.max(maxLen, (et.series[t] || []).length); });
-    const lo = Math.min(...allE) - 10, hi = Math.max(...allE) + 10;
-    const sx = i => pad.l + (i / (maxLen - 1)) * (W - pad.l - pad.r);
-    const sy = v => H - pad.b - (v - lo) / (hi - lo) * (H - pad.t - pad.b);
+    et.teams.forEach(t => (et.series[t] || []).forEach(p => { allE.push(p.elo); }));
+    et.teams.forEach(t => maxLen = Math.max(maxLen, (et.series[t] || []).length));
+    const lo = Math.min(...allE) - 8, hi = Math.max(...allE) + 8;
+    const sx = i => pad.l + (i / Math.max(maxLen - 1, 1)) * (W - pad.l - pad.r), sy = v => H - pad.b - (v - lo) / (hi - lo) * (H - pad.t - pad.b);
     let g = "";
-    for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4, y = sy(v);
-      g += `<line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="rgba(255,255,255,.05)"/><text x="4" y="${y + 3}" fill="#67728f" font-size="9">${Math.round(v)}</text>`; }
-    et.teams.forEach((t, ti) => {
-      const s = et.series[t] || []; if (!s.length) return;
-      const pts = s.map((p, i) => `${sx(i)},${sy(p.elo)}`).join(" ");
-      g += `<polyline points="${pts}" fill="none" stroke="${PALETTE[ti % PALETTE.length]}" stroke-width="2" opacity=".9"/>`;
-      g += `<circle cx="${sx(s.length - 1)}" cy="${sy(s[s.length - 1].elo)}" r="3" fill="${PALETTE[ti % PALETTE.length]}"/>`;
-    });
-    svg.innerHTML = g;
-    $("#trend-legend").innerHTML = et.teams.map((t, i) => `<span><i style="background:${PALETTE[i % PALETTE.length]}"></i>${et.flags[t] || ""} ${esc(t)}</span>`).join("");
+    for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4, y = sy(v); g += `<line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="#23262e"/><text x="2" y="${y + 3}" fill="#5e6573" font-size="9">${Math.round(v)}</text>`; }
+    et.teams.forEach((t, ti) => { const s = et.series[t] || []; if (!s.length) return;
+      g += `<polyline points="${s.map((p, i) => `${sx(i)},${sy(p.elo)}`).join(" ")}" fill="none" stroke="${PAL[ti % PAL.length]}" stroke-width="1.8"/><circle cx="${sx(s.length - 1)}" cy="${sy(s[s.length - 1].elo)}" r="2.5" fill="${PAL[ti % PAL.length]}"/>`; });
+    $("#trend-svg").innerHTML = g;
+    $("#trend-legend").innerHTML = et.teams.map((t, i) => `<span><i style="background:${PAL[i % PAL.length]}"></i>${et.flags[t] || ""} ${esc(t)}</span>`).join("");
+  }
+
+  /* ---------- SCHEDULE ---------- */
+  function scheduleHTML() {
+    const byDate = {};
+    (D.schedule_full || []).forEach(m => (byDate[m.date] = byDate[m.date] || []).push(m));
+    const days = Object.keys(byDate).sort().map(d => {
+      const rows = byDate[d].map(m => {
+        const stage = m.stage === "group" ? "组 " + m.group : String(m.stage).toUpperCase();
+        let mid, tag;
+        if (m.actual) {
+          mid = `<span class="s-mid played">${esc(m.actual)}</span>`;
+          tag = m.pred ? `<span class="s-result ${m.pred_hit ? "s-hit" : "s-miss"}">${m.pred_hit ? "✓ 预测命中" : "✗ 预测 " + sc(m.pred.score)}</span>` : `<span class="s-result s-up">已赛</span>`;
+        } else if (m.pred) {
+          mid = `<span class="s-mid pred">${sc(m.pred.score)}</span>`;
+          const w = { home: m.home, draw: "平", away: m.away }[m.pred.pick];
+          tag = `<span class="s-result s-up">${esc(w)} ${pct(m.pred.pick_p, 0)}</span>`;
+        } else { mid = `<span class="s-mid pred s-tbd">待定</span>`; tag = `<span class="s-result s-up">未定队</span>`; }
+        const hn = m.ko_slot ? `<span class="s-tbd">${esc(m.home)}</span>` : `${m.flagH} ${esc(m.home)}`;
+        const an = m.ko_slot ? `<span class="s-tbd">${esc(m.away)}</span>` : `${esc(m.away)} ${m.flagA}`;
+        const predTag = (m.actual && m.pred) ? `赛前 ${pct({ home: m.pred.p_home, draw: m.pred.p_draw, away: m.pred.p_away }[m.pred.pick], 0)}` : "";
+        return `<div class="srow"><div class="s-meta">${esc(stage)}<br>${esc(m.venue || "")}</div>
+          <div class="s-teams"><span class="s-h">${hn}</span>${mid}<span class="s-a">${an}</span></div>
+          <div class="s-pred-tag">${predTag}</div><div>${tag}</div></div>`;
+      }).join("");
+      return `<div class="sched-day"><div class="sched-date">${esc(d)}</div>${rows}</div>`;
+    }).join("");
+    return `<section class="view" id="view-schedule"><div class="vhead"><h1>赛程</h1><span class="sub">全部 104 场。已赛显示<b>真实比分</b>与模型赛前预测是否命中；未赛显示<b>预测比分</b>。模型随每轮结果用 Elo 动态更新。</span></div>${days}</section>`;
   }
 
   /* ---------- MATCHES ---------- */
   function matchesHTML() {
-    return `<section class="view" id="view-matches"><div class="vhead"><h1>比赛预测</h1><span class="sub">每场胜平负 / 比分 / 判断依据 / 全盘口 / 伤停</span></div>
-      <div class="filters" id="match-filters"></div><div class="match-grid" id="match-grid"></div></section>`;
+    return `<section class="view" id="view-matches"><div class="vhead"><h1>比赛预测</h1><span class="sub">每场预测比分 / 胜平负 / 判断依据 / 盘口 / 裁判 / 伤停</span></div><div class="filters" id="match-filters"></div><div class="match-grid" id="match-grid"></div></section>`;
   }
   function matchesPost() {
     const dates = [...new Set(upcoming().map(f => f.date))].sort();
-    let active = "all";
-    const grid = $("#match-grid"), filt = $("#match-filters");
+    let active = "all"; const grid = $("#match-grid"), filt = $("#match-filters");
     filt.innerHTML = `<button class="fbtn active" data-d="all">全部 ${D.fixtures.length} 场</button>` + dates.map(d => `<button class="fbtn" data-d="${d}">${d.slice(5)}</button>`).join("");
     const draw = () => grid.innerHTML = upcoming().filter(f => active === "all" || f.date === active).map(matchCard).join("");
-    filt.addEventListener("click", e => { const b = e.target.closest(".fbtn"); if (!b) return;
-      filt.querySelectorAll(".fbtn").forEach(x => x.classList.remove("active")); b.classList.add("active"); active = b.dataset.d; draw(); });
+    filt.addEventListener("click", e => { const b = e.target.closest(".fbtn"); if (!b) return; filt.querySelectorAll(".fbtn").forEach(x => x.classList.remove("active")); b.classList.add("active"); active = b.dataset.d; draw(); });
     draw();
   }
 
@@ -175,72 +175,101 @@
   function scoreHTML() {
     const cards = upcoming().map(fx => {
       const m = fx.markets; if (!m || !m.grid) return "";
-      const grid = m.grid, mx = Math.max(...grid.flat());
-      let heat = `<div class="heat"><div class="axh">客队进球 →</div>`;
-      heat += `<div></div>` + grid[0].map((_, j) => `<div class="lbl">${j}</div>`).join("");
-      grid.forEach((row, i) => { heat += `<div class="lbl">${i}</div>` + row.map((p, j) => {
-        const a = Math.pow(p / mx, 0.6);
-        return `<div class="hc" style="background:rgba(34,211,238,${(0.04 + 0.92 * a).toFixed(2)})" title="${i}-${j} ${pct(p)}">${p >= 0.03 ? Math.round(p * 100) : ""}</div>`; }).join(""); });
+      const grid = m.grid, mxc = Math.max(...grid.flat());
+      let heat = `<div class="heat"><div class="axh">客队进球 →</div><div></div>` + grid[0].map((_, j) => `<div class="lbl">${j}</div>`).join("");
+      grid.forEach((row, i) => { heat += `<div class="lbl">${i}</div>` + row.map((p, j) => { const a = Math.pow(p / mxc, 0.6);
+        return `<div class="hc" style="background:rgba(16,185,129,${(0.05 + 0.9 * a).toFixed(2)})" title="${i}-${j} ${pct(p)}">${p >= 0.03 ? Math.round(p * 100) : ""}</div>`; }).join(""); });
       heat += `</div>`;
-      const sb = fx.score_breakdown || {}, br = sb.by_result || {};
+      const sb = fx.score_breakdown || {}, br = sb.by_result || {}, top1 = (sb.top || [{}])[0];
       const bars = (sb.top || []).slice(0, 6).map(c => `<div class="cs-bar"><span>${esc(c.score)}</span><div class="track"><span class="fill" style="width:${100 * c.p / (sb.top[0].p)}%"></span></div><span>${pct(c.p)}</span></div>`).join("");
-      const top1 = (sb.top || [{}])[0];
       const ou = m.over_under["2.5"];
-      const an = `最可能比分 <strong>${esc(top1.score || "")}</strong>（${pct(top1.p)}）。` +
-        `${esc(fx.home)}赢盘下最可能 ${br.home ? esc(br.home.score) : "—"}，${esc(fx.away)}赢盘下 ${br.away ? esc(br.away.score) : "—"}，平局多为 ${br.draw ? esc(br.draw.score) : "—"}。` +
-        `预期进球 ${fx.lambda_h.toFixed(1)}–${fx.lambda_a.toFixed(1)}，${ou.over >= 0.5 ? "大球" : "小球"}略占优（大 2.5 ${pct(ou.over, 0)}）。`;
+      const an = `最可能 <strong>${esc(fx.home)} ${sc(top1.score)} ${esc(fx.away)}</strong>（${pct(top1.p)}）。预期进球 ${fx.lambda_h.toFixed(1)}–${fx.lambda_a.toFixed(1)}，${ou.over >= 0.5 ? "偏大球" : "偏小球"}（大 2.5 ${pct(ou.over, 0)}）。`;
       return `<div class="mc"><div class="mc-head"><span class="badge">${fx.stage === "group" ? "组 " + fx.group : String(fx.stage).toUpperCase()}</span><span class="mc-date">${esc(fx.date)}</span></div>
-        <div class="mc-teams"><div class="mc-team home"><span class="fn">${fx.flagH} ${esc(fx.home)}</span></div><div class="mc-xg">${fx.lambda_h.toFixed(1)}–${fx.lambda_a.toFixed(1)}<small>预期</small></div><div class="mc-team away"><span class="fn">${esc(fx.away)} ${fx.flagA}</span></div></div>
+        <div class="bigscore"><span class="nm">${fx.flagH} ${esc(fx.home)}</span> ${sc(top1.score)} <span class="nm">${esc(fx.away)} ${fx.flagA}</span></div>
         ${heat}<div class="cs-bars">${bars}</div>
-        <div class="byres"><div class="br"><div class="k">主胜比分</div><div class="v">${br.home ? esc(br.home.score) : "—"}</div></div><div class="br"><div class="k">平局比分</div><div class="v">${br.draw ? esc(br.draw.score) : "—"}</div></div><div class="br"><div class="k">客胜比分</div><div class="v">${br.away ? esc(br.away.score) : "—"}</div></div></div>
+        <div class="byres"><div class="br"><div class="k">主胜比分</div><div class="v">${br.home ? sc(br.home.score) : "—"}</div></div><div class="br"><div class="k">平局比分</div><div class="v">${br.draw ? sc(br.draw.score) : "—"}</div></div><div class="br"><div class="k">客胜比分</div><div class="v">${br.away ? sc(br.away.score) : "—"}</div></div></div>
         <div class="narr">${an}</div></div>`;
     }).join("");
-    return `<section class="view" id="view-score"><div class="vhead"><h1>比分预测</h1><span class="sub">Dixon-Coles 比分概率网格（热力图）+ 各结果最可能比分 + 分析</span></div>
-      <div class="score-grid">${cards}</div></section>`;
+    return `<section class="view" id="view-score"><div class="vhead"><h1>比分预测</h1><span class="sub">每场给出最可能的具体比分（如 0–1），下方热力图是完整比分概率分布</span></div><div class="score-grid">${cards}</div></section>`;
   }
 
-  /* ---------- ODDS COMPARISON ---------- */
-  function oddsHTML() {
-    const cards = upcoming().filter(f => (f.odds_compare || []).length).map(fx => {
-      const rows = fx.odds_compare; let body = ""; let lastM = "";
-      rows.forEach(r => {
-        if (r.market !== lastM) { body += `<tr class="grp"><td class="l" colspan="5">${esc(r.market)}</td></tr>`; lastM = r.market; }
-        const cls = r.edge > 0.03 ? "edge-pos" : r.edge < -0.03 ? "edge-neg" : "";
-        body += `<tr><td class="l">${esc(r.sel)}</td><td>${pct(r.model_p, 0)}</td><td>${r.fair}</td><td>${r.book}</td><td class="${cls}">${r.edge > 0 ? "+" : ""}${(100 * r.edge).toFixed(0)}%</td></tr>`;
-      });
-      const big = rows.slice().sort((a, b) => b.edge - a.edge)[0];
-      const an = `模型与市场最大分歧：<strong>${esc(big.sel)}</strong>（模型 ${pct(big.model_p, 0)} vs 实时赔率隐含 ${pct(big.book_imp, 0)}，名义 EV ${big.edge > 0 ? "+" : ""}${(100 * big.edge).toFixed(0)}%）。` +
-        `<span class="dim"> 但回测证明这类高 EV 分歧多为噪声——别当真。</span>`;
-      return `<div class="panel sec-block"><div class="p-title">${fx.flagH} ${esc(fx.home)} vs ${esc(fx.away)} ${fx.flagA} <span class="dim" style="font-weight:500">${esc(fx.date)}</span></div>
-        <table class="oc-table"><thead><tr><th class="l">选项</th><th>模型概率</th><th>模型公平赔率</th><th>实时赔率</th><th>名义 EV</th></tr></thead><tbody>${body}</tbody></table>
-        <div class="card-note">${an}</div></div>`;
-    }).join("");
-    return `<section class="view" id="view-odds"><div class="vhead"><h1>赔率比较</h1><span class="sub">模型公平赔率 vs the-odds-api 实时赔率（${D.live_odds ? esc(D.live_odds.source) : "—"}）</span></div>
-      <p class="value-lead">EV = 模型概率 × 实时赔率 − 1。正 EV 看着像「价值」，但<b>「数据分析」页的下注回测证明：越高 EV 的分歧、ROI 反而越低 = 噪声不是优势</b>。此页供研究对照，不构成投注建议。</p>
-      ${cards}</section>`;
-  }
-
-  /* ---------- BEST PICKS ---------- */
+  /* ---------- PICKS ---------- */
   function picksHTML() {
     const cards = (D.best_picks || []).map(p => {
-      const lbl = { 主胜: p.home, 平局: "平局", 客胜: p.away }[p.pick];
-      const edge = p.best_edge;
-      const ep = edge == null ? "" : `<span class="pick-edge ${edge > 0.03 ? "edge-pos" : "edge-neg"}">最优盘口 EV ${edge > 0 ? "+" : ""}${(100 * edge).toFixed(0)}%</span>`;
+      const lbl = { 主胜: p.home + " 胜", 平局: "平局", 客胜: p.away + " 胜" }[p.pick];
+      const edge = p.best_edge, ep = edge == null ? "" : `<span class="pick-edge ${edge > 0.03 ? "edge-pos" : "edge-neg"}">最优盘口 EV ${edge > 0 ? "+" : ""}${(100 * edge).toFixed(0)}%</span>`;
       return `<div class="pick"><div class="conf" style="width:${100 * p.pick_p}%"></div>
-        <div class="pick-top"><span class="pick-match">${p.flagH} ${esc(p.home)} <span class="dim">vs</span> ${esc(p.away)} ${p.flagA}</span>
-          <span class="pick-call">${esc(p.pick === "平局" ? "平局" : lbl + "胜")} ${pct(p.pick_p, 0)}</span></div>
-        <div class="pick-meta"><span>最可能比分 <b>${esc(p.score)}</b> ${pct(p.score_p, 0)}</span><span>预期 <b>${p.lambda_h.toFixed(1)}–${p.lambda_a.toFixed(1)}</b></span>${ep}</div>
+        <div class="pick-top"><span class="pick-match">${p.flagH} ${esc(p.home)} <span class="dim">vs</span> ${esc(p.away)} ${p.flagA}</span><span class="pick-call">${esc(lbl)} ${pct(p.pick_p, 0)}</span></div>
+        <div class="pick-meta"><span>预测比分 <b>${sc(p.score)}</b></span><span>预期 <b>${p.lambda_h.toFixed(1)}–${p.lambda_a.toFixed(1)}</b></span>${ep}</div>
         <div class="pick-an">${bold(p.narrative)}</div></div>`;
     }).join("");
-    return `<section class="view" id="view-picks"><div class="vhead"><h1>最佳选择</h1><span class="sub">模型最有把握的方向，按概率从高到低排序</span></div>
-      <p class="value-lead">⭐ 这里是「<b>最大概率</b>」——模型最确定的方向，<b>不等于最大赔率、更不等于稳赢</b>。高概率 ≠ 高价值（强队低赔，赢了也赚得少）；想看「价值」去「赔率比较」，想看「能否赚钱」去「数据分析」的下注回测。每一条都附模型依据。</p>
+    return `<section class="view" id="view-picks"><div class="vhead"><h1>最佳选择</h1><span class="sub">模型最有把握的方向，按概率从高到低</span></div>
+      <div class="banner">⭐ 这是「<b>最大概率</b>」——模型最确定的方向，<b>不等于最大赔率、更不等于稳赢</b>。强队低赔，赢了也赚得少；想看「价值/买入」去「赔率与买入」，想看「能否赚钱」去「数据分析」的下注回测。</div>
       <div class="picks-grid">${cards}</div></section>`;
+  }
+
+  /* ---------- BET (odds compare + recommendations + combo) ---------- */
+  function betHTML() {
+    const recs = (D.betting && D.betting.recommendations) || [];
+    const recRows = recs.map(v => `<tr class="rec-row"><td class="l">${esc(v.pick)}</td><td>${pct(v.model_p, 0)}</td><td>${v.odds}</td><td class="edge-pos">+${v.ev_pct.toFixed(0)}%</td><td class="stk">${v.stake}</td><td>${v.exp_return >= 0 ? "+" : ""}${v.exp_return}</td>
+      <td><button class="add-leg" data-id="rec-${esc(v.home)}-${esc(v.side)}" data-match="${esc(v.home)}|${esc(v.away)}" data-label="${esc(v.pick)}" data-p="${v.model_p}" data-odds="${v.odds}">＋</button></td></tr>`).join("");
+    const sel = upcoming().slice(0, 12).filter(f => (f.odds_compare || []).length).map(fx => {
+      const rows = (fx.odds_compare || []).filter(r => r.market === "胜平负").map(r => {
+        const id = `${fx.home}-${fx.away}-${r.sel}`;
+        return `<tr><td class="l">${esc(r.sel)}</td><td>${pct(r.model_p, 0)}</td><td>${r.book}</td><td class="${r.edge > 0.02 ? "edge-pos" : r.edge < -0.02 ? "edge-neg" : ""}">${r.edge > 0 ? "+" : ""}${(100 * r.edge).toFixed(0)}%</td>
+          <td><button class="add-leg" data-id="${esc(id)}" data-match="${esc(fx.home)}|${esc(fx.away)}" data-label="${esc(fx.home)} vs ${esc(fx.away)} · ${esc(r.sel)}" data-p="${r.model_p}" data-odds="${r.book}">＋</button></td></tr>`; }).join("");
+      return `<tr class="grp"><td class="l" colspan="5">${fx.flagH} ${esc(fx.home)} vs ${esc(fx.away)} ${fx.flagA} · ${esc(fx.date.slice(5))}</td></tr>${rows}`;
+    }).join("");
+    return `<section class="view" id="view-bet"><div class="vhead"><h1>赔率与买入</h1><span class="sub">模型概率 vs the-odds-api 实时赔率 · 买入建议与预期收益 · 串关计算器</span></div>
+      <div class="banner"><b>⚠️ 诚实声明：</b>下面的 EV / 预期收益是<b>模型视角</b>的名义值。历史下注回测证明模型<b>跑不赢闭线</b>(「数据分析」页可查),所谓「价值」多为噪声;<b>串关只会把每注抽水相乘——是「方差最大化」不是「收益最大化」</b>。此页供研究,非投注建议。</div>
+      <div class="bet-grid">
+        <div>
+          <div class="panel sec-block"><div class="mini-title">买入建议（模型正 EV，按 ¼ Kelly，本金 1000）</div>
+            <table class="vt"><thead><tr><th class="l">比赛 · 选项</th><th>模型</th><th>赔率</th><th>EV</th><th>注额</th><th>预期</th><th></th></tr></thead><tbody>${recRows || "<tr><td class='l dim'>暂无</td></tr>"}</tbody></table></div>
+          <div class="panel"><div class="mini-title">从近期比赛挑选（加入串关）</div>
+            <table class="oc-table"><thead><tr><th class="l">选项</th><th>模型</th><th>实时赔率</th><th>EV</th><th></th></tr></thead><tbody>${sel}</tbody></table></div>
+        </div>
+        <div class="panel slip"><div class="mini-title">🧾 串关计算器</div>
+          <div id="slip-legs"><p class="dim" style="font-size:12px">点 ＋ 添加投注项，看组合赔率、模型胜率与 EV 如何变化。</p></div>
+          <div class="combo-input">本金 <input id="combo-stake" type="number" value="10" min="1"> 元</div>
+          <div class="slip-foot" id="slip-stats"></div>
+        </div>
+      </div></section>`;
+  }
+  function betPost() {
+    const legs = [];
+    const stakeEl = () => Math.max(1, parseFloat(($("#combo-stake") || {}).value || "10") || 10);
+    function recompute() {
+      const lg = $("#slip-legs"), st = $("#slip-stats");
+      if (!legs.length) { lg.innerHTML = `<p class="dim" style="font-size:12px">点 ＋ 添加投注项，看组合赔率、模型胜率与 EV 如何变化。</p>`; st.innerHTML = ""; document.querySelectorAll(".add-leg.in").forEach(b => b.classList.remove("in")); return; }
+      lg.innerHTML = legs.map((l, i) => `<div class="slip-leg"><span>${esc(l.label)} <span class="dim">@${l.odds}</span></span><span class="x" data-i="${i}">✕</span></div>`).join("");
+      const oddsProd = legs.reduce((a, l) => a * l.odds, 1), probProd = legs.reduce((a, l) => a * l.model_p, 1);
+      const stake = stakeEl(), payout = stake * oddsProd, ev = probProd * oddsProd - 1;
+      st.innerHTML = `<div class="slip-stat"><span>腿数</span><span class="v">${legs.length}</span></div>
+        <div class="slip-stat"><span>组合赔率</span><span class="v">${oddsProd.toFixed(2)}</span></div>
+        <div class="slip-stat"><span>模型胜率（全中）</span><span class="v" style="color:${probProd > 0.2 ? "var(--acc)" : probProd > 0.05 ? "var(--warn)" : "var(--neg)"}">${pct(probProd, 1)}</span></div>
+        <div class="slip-stat"><span>潜在回报</span><span class="v">${payout.toFixed(1)} 元</span></div>
+        <div class="slip-stat"><span>模型 EV</span><span class="v ${ev >= 0 ? "edge-pos" : "edge-neg"}">${ev >= 0 ? "+" : ""}${(100 * ev).toFixed(0)}%</span></div>
+        <div class="note" style="margin-top:8px">${legs.length >= 2 ? `每多 1 腿,胜率乘下去越来越小、抽水越叠越厚——这正是串关「看着回报高、实则 EV 更差」的原因。` : `单注：胜率最高，但回报有限。`}</div>`;
+      document.querySelectorAll(".add-leg").forEach(b => b.classList.toggle("in", legs.some(l => l.id === b.dataset.id)));
+    }
+    const v = $("#view-bet");
+    v.addEventListener("click", e => {
+      const add = e.target.closest(".add-leg");
+      if (add) { const id = add.dataset.id, ix = legs.findIndex(l => l.id === id);
+        if (ix >= 0) { legs.splice(ix, 1); }
+        else { const mt = add.dataset.match;
+          const mi = legs.findIndex(l => l.match === mt); if (mi >= 0) legs.splice(mi, 1);  // one leg per match
+          legs.push({ id, match: mt, label: add.dataset.label, model_p: +add.dataset.p, odds: +add.dataset.odds }); }
+        recompute(); return; }
+      const x = e.target.closest(".x"); if (x) { legs.splice(+x.dataset.i, 1); recompute(); }
+    });
+    v.addEventListener("input", e => { if (e.target.id === "combo-stake") recompute(); });
   }
 
   /* ---------- GROUPS ---------- */
   function groupsHTML() {
-    const order = Object.keys(D.groups).sort();
-    const cards = order.map(g => {
+    const cards = Object.keys(D.groups).sort().map(g => {
       const st = {}; (D.standings[g] || []).forEach(s => st[s.team] = s);
       const rows = D.groups[g].map(t => { const s = st[t.team] || { pld: 0, pts: 0, gf: 0, ga: 0 }; return { ...t, pld: s.pld, pts: s.pts, gd: s.gf - s.ga, padv: t.p_advance || 0 }; }).sort((a, b) => b.padv - a.padv);
       const body = rows.map((r, i) => `<tr class="${i < 2 ? "q" : ""}"><td class="l tm">${r.flag} ${esc(r.team)}</td><td>${r.pld}</td><td>${r.pts}</td><td>${r.gd > 0 ? "+" : ""}${r.gd}</td><td><span class="adv-pill">${pct(r.padv, 0)}</span><div class="gbar"><i style="width:${100 * r.padv}%"></i></div></td></tr>`).join("");
@@ -251,25 +280,22 @@
 
   /* ---------- ANALYTICS ---------- */
   function analyticsHTML() {
-    const bt = D.credibility.backtest, mb = D.credibility.market_beat, bb = D.credibility.betting_backtest, vb = (D.betting && D.betting.value_bets) || [];
-    const btTable = bt.length ? `<table class="ctable"><thead><tr><th class="l">届</th><th>场</th><th>RPS模型</th><th>RPS均匀</th><th>LogLoss</th><th>比分命中</th></tr></thead><tbody>${bt.map(r => `<tr class="${r.wc === "all" ? "hl" : ""}"><td class="l">${r.wc}</td><td>${r.n}</td><td>${r.rps_model.toFixed(3)}</td><td>${r.rps_uniform.toFixed(3)}</td><td>${r.logloss_model.toFixed(3)}</td><td>${pct(r.exact_hit_top1, 0)}</td></tr>`).join("")}</tbody></table>` : "";
-    const mbRows = mb && mb.tournaments ? mb.tournaments.map(t => `<div class="mb-row"><span>${esc(t.wc)} · ${t.n} 场 <span class="dim">${esc(t.kind || "")}</span></span><span>模型 <b>${t.rps_model.toFixed(3)}</b> · 对手 <b>${t.rps_market.toFixed(3)}</b> <span class="cb-edge ${t.rps_model < t.rps_market ? "edge-pos" : "edge-neg"}">${t.rps_model < t.rps_market ? "模型更优" : "对手更优"}</span></span></div>`).join("") +
-      (mb.overall ? `<div class="mb-row"><span class="mb-win">合计 ${mb.overall.n} 场</span><span class="mb-win" style="color:${mb.overall.model_better ? "#5ef2c4" : "#ffa1b4"}">${mb.overall.model_better ? "模型 ≤ 市场" : "市场 < 模型"}（Δ${(mb.overall.margin >= 0 ? "+" : "") + mb.overall.margin.toFixed(4)}）</span></div>` : "") : "<p class='dim'>—</p>";
-    const valTable = vb.length ? `<table class="vt"><thead><tr><th class="l">比赛 · 选项</th><th>模型</th><th>赔率</th><th>EV</th></tr></thead><tbody>${vb.slice(0, 8).map(v => `<tr><td class="l">${esc(v.pick)}</td><td>${pct(v.model_p, 0)}</td><td>${v.odds}</td><td class="ev">+${v.ev_pct.toFixed(0)}%</td></tr>`).join("")}</tbody></table>` : "";
-    const roiRows = bb && bb.strategies ? `<div class="trend">要求越高把握(EV 阈值↑),ROI <b>反而越低</b> ⇒ 分歧是噪声、不是信号：</div>` + bb.strategies.map(s => `<div class="roi-bar-row"><span class="nm">${esc(s.name)} <span class="dim">(${s.n_bets}注)</span></span><span class="rv ${s.roi >= 0 ? "roi-pos" : "roi-neg"}">${100 * s.roi >= 0 ? "+" : ""}${(100 * s.roi).toFixed(1)}%</span></div>`).join("") : "";
+    const bt = D.credibility.backtest, mb = D.credibility.market_beat, bb = D.credibility.betting_backtest;
+    const btTable = bt.length ? `<table class="ctable"><thead><tr><th class="l">届</th><th>场</th><th>RPS模型</th><th>RPS均匀</th><th>比分命中</th></tr></thead><tbody>${bt.map(r => `<tr class="${r.wc === "all" ? "hl" : ""}"><td class="l">${r.wc}</td><td>${r.n}</td><td>${r.rps_model.toFixed(3)}</td><td>${r.rps_uniform.toFixed(3)}</td><td>${pct(r.exact_hit_top1, 0)}</td></tr>`).join("")}</tbody></table>` : "";
+    const mbRows = mb && mb.tournaments ? mb.tournaments.map(t => `<div class="mb-row"><span>${esc(t.wc)} · ${t.n} 场 <span class="dim">${esc(t.kind || "")}</span></span><span>模型 <b>${t.rps_model.toFixed(3)}</b> · 对手 <b>${t.rps_market.toFixed(3)}</b> <span class="cb-edge ${t.rps_model < t.rps_market ? "edge-pos" : "edge-neg"}">${t.rps_model < t.rps_market ? "模型更优" : "对手更优"}</span></span></div>`).join("") + (mb.overall ? `<div class="mb-row"><span class="mb-win">合计 ${mb.overall.n} 场</span><span class="mb-win" style="color:${mb.overall.model_better ? "var(--acc)" : "var(--neg)"}">${mb.overall.model_better ? "模型 ≤ 市场" : "市场 < 模型"}（Δ${(mb.overall.margin >= 0 ? "+" : "") + mb.overall.margin.toFixed(4)}）</span></div>` : "") : "—";
+    const roiRows = bb && bb.strategies ? `<div class="trend">要求越高把握(EV 阈值↑),ROI <b>反而越低</b> ⇒ 分歧是噪声、不是优势：</div>` + bb.strategies.map(s => `<div class="roi-bar-row"><span class="nm">${esc(s.name)} <span class="dim">(${s.n_bets}注)</span></span><span class="rv ${s.roi >= 0 ? "roi-pos" : "roi-neg"}">${100 * s.roi >= 0 ? "+" : ""}${(100 * s.roi).toFixed(1)}%</span></div>`).join("") : "";
     const meth = `<div class="card method"><h3>方法与数据</h3><ul>
-      <li><b>Elo</b>：eloratings.net 公式自算，全史单遍递推，只用赛前评分（无泄漏）。</li>
+      <li><b>Elo</b>：eloratings.net 公式自算，全史单遍递推，只用赛前评分（无泄漏，随每轮结果动态更新）。</li>
       <li><b>比分模型</b>：λ = exp(b0 ± b1·ΔElo/400 + 主场)，Dixon-Coles ρ 修正 + 指数时间衰减 MLE。</li>
-      <li><b>市值融合</b>：横截面回归 elo ~ log(市值)，权重 0.25。</li>
-      <li><b>模拟</b>：小组赛(已赛固定)→ FIFA tiebreakers → 12 组前二 + 8 best thirds → 淘汰赛(加时 1/3、点球 50/50) × ${D.meta.n_sims.toLocaleString()}。</li>
-      <li><b>派生盘口</b>：大小球/双方进球/亚盘/正确比分均由比分网格解析得出。</li></ul></div>`;
+      <li><b>多维</b>：Elo + 阵容市值融合 + 伤停/裁判定性层。</li>
+      <li><b>模拟</b>：FIFA tiebreakers + 8 best thirds + 淘汰赛 × ${D.meta.n_sims.toLocaleString()}。</li>
+      <li><b>派生盘口</b>：大小球/双方进球/亚盘/正确比分均由比分网格解析。</li></ul></div>`;
     return `<section class="view" id="view-analytics"><div class="vhead"><h1>数据分析</h1><span class="sub">回测 · 概率校准 · 市场对标 · 下注回测（诚实版）</span></div>
       <div class="cred-grid">
-        <div class="card"><div class="mini-title">历届世界杯回测</div>${btTable}<p class="card-note">RPS 越低越好；模型完胜均匀基线(0.242)。精确比分命中约 11.5%——国家队足球的理论上限附近。</p></div>
+        <div class="card"><div class="mini-title">历届世界杯回测</div>${btTable}<p class="card-note">RPS 越低越好；模型完胜均匀基线(0.242)。精确比分命中约 11.5%——国家队足球理论上限附近。</p></div>
         <div class="card"><div class="mini-title">概率校准 <span class="badge-inline" id="ece-badge"></span></div><svg class="cal-svg" id="cal-svg" viewBox="0 0 320 200"></svg><p class="card-note">点越近对角线越校准。0.4–0.7 区间略偏保守，但留一届 CV 证明「锐化」不可泛化。</p></div>
         <div class="card"><div class="mini-title">市场对标（能否跑赢赔率）</div>${mbRows}<p class="card-note">对标真实 Betfair 闭线(2014+2018)。</p></div>
-        <div class="card"><div class="mini-title">模型识别的「正 EV」边</div>${valTable}</div>
-        <div class="card" style="grid-column:span 2"><div class="mini-title">⚠️ 这些边能赚钱吗？下注回测</div>${roiRows}<div class="verdict"><b>⚠️ 别被正收益骗了。</b> ${bb ? esc(bb.note) : ""}</div></div>
+        <div class="card" style="grid-column:span 2"><div class="mini-title">⚠️ 下注回测：这些「价值」能赚钱吗？</div>${roiRows}<div class="verdict"><b>别被正收益骗了。</b> ${bb ? esc(bb.note) : ""}</div></div>
       </div>${meth}</section>`;
   }
   function analyticsPost() {
@@ -277,24 +303,12 @@
     $("#ece-badge").textContent = "ECE " + (D.credibility.calibration_ece || 0).toFixed(3);
     const W = 320, H = 200, pad = 28, sx = v => pad + v * (W - 2 * pad), sy = v => H - pad - v * (H - 2 * pad);
     const mxN = Math.max(...cal.map(c => c.n));
-    const pts = cal.map(c => `<circle cx="${sx(c.pred_mean)}" cy="${sy(c.obs_freq)}" r="${3 + 7 * c.n / mxN}" fill="rgba(34,211,238,.5)" stroke="#22d3ee"/>`).join("");
-    $("#cal-svg").innerHTML = `<line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="#566" stroke-dasharray="4 4" opacity=".6"/>
-      <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#334"/><line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#334"/>${pts}
-      <text x="${W / 2}" y="${H - 4}" fill="#67728f" font-size="10" text-anchor="middle">模型预测概率 →</text>`;
-  }
-
-  /* ---------- MIRROR ---------- */
-  function mirrorHTML() {
-    const m = D.methodology; if (!m) return `<section class="view" id="view-mirror"></section>`;
-    const sp = (D.leaderboard.find(t => t.team === "Spain") || {}).p_champion || 0;
-    return `<section class="view" id="view-mirror"><div class="vhead"><h1>「经济学家预测世界杯全对」？照妖镜</h1><span class="sub">名人预测的真相与可借鉴之处</span></div>
-      <p class="value-lead">${esc(m.key_lesson || "")}</p>
-      <div class="mirror-grid">${(m.referents || []).map(r => `<div class="mr"><div class="mr-who">${esc(r.who)} <span class="mr-tag ${r.credible ? "mr-ok" : "mr-no"}">${r.credible ? "可信方法" : "运气/幸存者偏差"}</span></div><div class="mr-truth">${esc((r.truth || "").slice(0, 240))}</div>${r.borrowable ? `<div class="mr-borrow">💡 借鉴：${esc(r.borrowable.slice(0, 150))}</div>` : ""}</div>`).join("")}</div>
-      <div class="card crosscheck"><b>独立方法的趋同 ＞ 任何单一「神预测」。</b> 三套独立方法——<span class="cc-pill">🎮 EA Sports</span><span class="cc-pill">🏦 Goldman ≈26%</span><span class="cc-pill">⚙️ 本模型 ${pct(sp, 0)}</span>——都把 <b>西班牙</b> 列为 2026 头号热门。共用配方(Poisson+Elo+蒙特卡洛+市场集成+正确评分+多届回测)正是本项目所搭。而「预测 64 场全对」概率约 3⁻⁶⁴ ≈ 10⁻³⁰——「预测世界杯」从来只是「猜中冠军」。</div></section>`;
+    const pts = cal.map(c => `<circle cx="${sx(c.pred_mean)}" cy="${sy(c.obs_freq)}" r="${3 + 6 * c.n / mxN}" fill="rgba(16,185,129,.45)" stroke="#10b981"/>`).join("");
+    $("#cal-svg").innerHTML = `<line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="#3a4150" stroke-dasharray="4 4"/><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#2a2e37"/><line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#2a2e37"/>${pts}<text x="${W / 2}" y="${H - 4}" fill="#5e6573" font-size="10" text-anchor="middle">模型预测概率 →</text>`;
   }
 
   /* ---------- router ---------- */
-  const POST = { home: homePost, matches: matchesPost, analytics: analyticsPost };
+  const POST = { home: homePost, matches: matchesPost, bet: betPost, analytics: analyticsPost };
   function setView(id) {
     if (!NAV.find(n => n[0] === id)) id = "home";
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + id));
@@ -303,9 +317,9 @@
   }
   function init() {
     chrome();
-    $("#main").innerHTML = [homeHTML(), matchesHTML(), scoreHTML(), oddsHTML(), picksHTML(), groupsHTML(), analyticsHTML(), mirrorHTML()].join("");
+    $("#main").innerHTML = [homeHTML(), scheduleHTML(), matchesHTML(), scoreHTML(), picksHTML(), betHTML(), groupsHTML(), analyticsHTML()].join("");
     Object.values(POST).forEach(f => { try { f(); } catch (e) { console.error(e); } });
-    document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) { location.hash = g.dataset.go; } });
+    document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) location.hash = g.dataset.go; });
     window.addEventListener("hashchange", () => setView(location.hash.slice(1)));
     setView(location.hash.slice(1) || "home");
   }

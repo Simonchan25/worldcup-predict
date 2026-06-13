@@ -1,0 +1,271 @@
+{
+ "by_match": {
+  "Brazil|Morocco": {
+   "referee": "Sandro Schärer",
+   "nat": "Switzerland",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Haiti|Scotland": {
+   "referee": "Alejandro Hernández Hernández",
+   "nat": "Spain",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Qatar|Switzerland": {
+   "referee": "Saíd Martínez",
+   "nat": "Honduras",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Australia|Turkey": {
+   "referee": "Jesús Valenzuela",
+   "nat": "Venezuela",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Germany|Curaçao": {
+   "referee": "Jalal Jayed",
+   "nat": "Morocco",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Netherlands|Japan": {
+   "referee": "Ismail Elfath",
+   "nat": "United States",
+   "y": 3.6,
+   "r": 0.14,
+   "pen": 0.36,
+   "style": "Moderate, communicative MLS-school official; manages players verbally, average card and penalty rates. Host-nation referee."
+  },
+  "Ivory Coast|Ecuador": {
+   "referee": "François Letexier",
+   "nat": "France",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Sweden|Tunisia": {
+   "referee": "Yael Falcón Pérez",
+   "nat": "Argentina",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Spain|Cape Verde": {
+   "referee": "Adham Makhadmeh",
+   "nat": "Jordan",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Belgium|Egypt": {
+   "referee": "Ramon Abatti",
+   "nat": "Brazil",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  },
+  "Saudi Arabia|Uruguay": {
+   "referee": "Maurizio Mariani",
+   "nat": "Italy",
+   "y": 4.2,
+   "r": 0.13,
+   "pen": 0.37,
+   "style": "Strict, card-happy Serie A official (career avg ~4.8, recent seasons ~3.8-4.1); tight tactical-foul management."
+  },
+  "Iran|New Zealand": {
+   "referee": "César Arturo Ramos",
+   "nat": "Mexico",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": ""
+  }
+ },
+ "tendencies": {
+  "Szymon Marciniak": {
+   "nat": "Poland",
+   "y": 4.2,
+   "r": 0.1,
+   "pen": 0.42,
+   "style": "Strict but respected; firm authority, manages big games well. Refereed 2022 WC final and 2023 UCL final; IFFHS best referee 2023 & 2024."
+  },
+  "Michael Oliver": {
+   "nat": "England",
+   "y": 3.4,
+   "r": 0.07,
+   "pen": 0.36,
+   "style": "On the stricter side for the EPL but consistent; lets some play flow, strong game management. ~3.2-3.5 yellows/game across competitions."
+  },
+  "Anthony Taylor": {
+   "nat": "England",
+   "y": 3.6,
+   "r": 0.1,
+   "pen": 0.33,
+   "style": "Experienced, generally lets play continue; card rate fluctuates by season (2.9 in 2024/25, ~3.8 in 2025/26). Pragmatic English style."
+  },
+  "Danny Makkelie": {
+   "nat": "Netherlands",
+   "y": 3.4,
+   "r": 0.1,
+   "pen": 0.33,
+   "style": "Balanced, calm communicator; moderate carder, decisive on penalties. One of UEFA's most trusted big-match officials."
+  },
+  "Clement Turpin": {
+   "nat": "France",
+   "y": 3.3,
+   "r": 0.19,
+   "pen": 0.42,
+   "style": "Lenient on cards but quick to point to the spot — holds the record for most UCL penalties awarded. Lets play on, penalty-prone."
+  },
+  "Francois Letexier": {
+   "nat": "France",
+   "y": 4,
+   "r": 0.18,
+   "pen": 0.41,
+   "style": "Rising elite ref (Euro 2024 final); fairly card-happy and willing to give penalties. Card rate climbing (~4.8/game in 2025/26)."
+  },
+  "Felix Zwayer": {
+   "nat": "Germany",
+   "y": 4.6,
+   "r": 0.09,
+   "pen": 0.34,
+   "style": "Strict, card-happy — well above average yellows/game; tight disciplinary leash, fewer straight reds."
+  },
+  "Slavko Vincic": {
+   "nat": "Slovenia",
+   "y": 4.1,
+   "r": 0.1,
+   "pen": 0.27,
+   "style": "Slightly above-average carder but sparing with penalties; physical, lets contact go. Big-game UEFA regular."
+  },
+  "Istvan Kovacs": {
+   "nat": "Romania",
+   "y": 5,
+   "r": 0.13,
+   "pen": 0.34,
+   "style": "Card-happy and strict — one of the highest yellow rates among WC refs (~5/game). Reaches for the pocket readily."
+  },
+  "Joao Pinheiro": {
+   "nat": "Portugal",
+   "y": 4.4,
+   "r": 0.1,
+   "pen": 0.39,
+   "style": "Above-average carder, fairly willing on penalties; firm Portuguese-school official back at a WC after 12 years."
+  },
+  "Maurizio Mariani": {
+   "nat": "Italy",
+   "y": 4.2,
+   "r": 0.13,
+   "pen": 0.37,
+   "style": "Strict, card-happy Serie A official (career avg ~4.8, recent seasons ~3.8-4.1); tight tactical-foul management."
+  },
+  "Glenn Nyberg": {
+   "nat": "Sweden",
+   "y": 3.1,
+   "r": 0.05,
+   "pen": 0.22,
+   "style": "Lenient — among the lowest card and penalty rates of the WC refs; lets play flow, Scandinavian hands-off approach."
+  },
+  "Alireza Faghani": {
+   "nat": "Australia",
+   "y": 3.6,
+   "r": 0.08,
+   "pen": 0.3,
+   "style": "Experienced, authoritative AFC/Australia veteran; moderate carder, composed and decisive in big matches."
+  },
+  "Wilton Sampaio": {
+   "nat": "Brazil",
+   "y": 5,
+   "r": 0.29,
+   "pen": 0.37,
+   "style": "Very card-happy and red-prone (~5 yellows, 0.3 reds/game) — typical high-volume South American officiating; lets games get heated then cards."
+  },
+  "Facundo Tello": {
+   "nat": "Argentina",
+   "y": 4.6,
+   "r": 0.2,
+   "pen": 0.25,
+   "style": "Firm, physical, card-happy and red-prone; known for fiery South American matches (notoriously red-heavy in the Maracanazo brawl). Stingier on penalties."
+  },
+  "Cesar Arturo Ramos": {
+   "nat": "Mexico",
+   "y": 4.2,
+   "r": 0.4,
+   "pen": 0.33,
+   "style": "Notably red-prone (~0.4 reds/game) with above-average yellows; busy CONCACAF veteran, lets games run physical."
+  },
+  "Ismail Elfath": {
+   "nat": "United States",
+   "y": 3.6,
+   "r": 0.14,
+   "pen": 0.36,
+   "style": "Moderate, communicative MLS-school official; manages players verbally, average card and penalty rates. Host-nation referee."
+  },
+  "Abdulrahman Al-Jassim": {
+   "nat": "Qatar",
+   "y": 3.5,
+   "r": 0.15,
+   "pen": 0.3,
+   "style": "Generally lenient (domestic avg ~3.0; small international sample skews higher to ~4.8); calm, refereed 2022 WC opener. Figures uncertain due to limited tracked data."
+  },
+  "Kevin Ortega": {
+   "nat": "Peru",
+   "y": 5,
+   "r": 0.2,
+   "pen": 0.5,
+   "style": "Very card-happy AND very penalty-happy (~5 yellows, ~0.5 pens/game) — among the most whistle-active WC refs; strict CONMEBOL style."
+  },
+  "Sandro Scharer": {
+   "nat": "Switzerland",
+   "y": 4.3,
+   "r": 0.1,
+   "pen": 0.39,
+   "style": "Above-average carder and fairly penalty-willing; firm, consistent Swiss official."
+  },
+  "Espen Eskas": {
+   "nat": "Norway",
+   "y": 3.2,
+   "r": 0.05,
+   "pen": 0.27,
+   "style": "Lenient, low-card Scandinavian official; few reds, sparing on penalties, lets play flow."
+  },
+  "Mustapha Ghorbal": {
+   "nat": "Algeria",
+   "y": 3.6,
+   "r": null,
+   "pen": null,
+   "style": "Moderate carder (~3.5-3.9/game); leading CAF official. Reliable penalty/red rates not well tracked by aggregators."
+  },
+  "Ma Ning": {
+   "nat": "China",
+   "y": null,
+   "r": null,
+   "pen": null,
+   "style": "Nicknamed 'Card Master' — reputation as one of Asia's strictest, very card-happy (famously 9 yellows + 3 reds in one 2015 CSL match). Per-game career averages not reliably tracked by European aggregators, but qualitatively strict."
+  }
+ },
+ "asof": "2026-06-13",
+ "note": "主裁判赛前1-2天才公布；16日后多为TBA。比分模型不因裁判调整，仅作风格提示。",
+ "sources": [
+  "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_officials",
+  "https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-officials-appointed-referees",
+  "https://inside.fifa.com/media-releases/fifa-world-cup-2026-match-referees-appointed",
+  "https://sports.yahoo.com/articles/referee-appointments-opening-world-cup-044800311.html"
+ ]
+}

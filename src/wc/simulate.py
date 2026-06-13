@@ -214,6 +214,15 @@ class Simulator:
         third_by_group = {t[1]: t[0] for t in thirds[:8]}
         third_assign = self.allocate_thirds(third_by_group)
 
+        # group-finish bookkeeping (purely observational — no RNG draws here,
+        # so champion/advancement counts are unaffected): who topped / placed
+        # second / qualified as a best third.
+        finishes = {}
+        for (rank, g), team in pos.items():
+            finishes[team] = "first" if rank == "1" else "second"
+        for team in third_by_group.values():
+            finishes[team] = "qual3"
+
         ko_result = {}  # match n -> (winner, loser)
 
         def resolve(code, n):
@@ -257,19 +266,21 @@ class Simulator:
                 reached[stage].update((h, a))
             if stage == "final":
                 champion, runner_up = w, l
-        return reached, champion, runner_up
+        return reached, champion, runner_up, finishes
 
     # ---- many tournaments -----------------------------------------------
     def run(self, n_sims=10000, progress_every=0):
         teams = [t for g in sorted(self.groups) for t in self.groups[g]]
         counters = {t: defaultdict(int) for t in teams}
         for s in range(n_sims):
-            reached, champion, runner_up = self.simulate_once()
+            reached, champion, runner_up, finishes = self.simulate_once()
             for stage, members in reached.items():
                 for t in members:
                     counters[t][stage] += 1
             counters[champion]["champion"] += 1
             counters[runner_up]["runner_up"] += 1
+            for t, code in finishes.items():
+                counters[t][code] += 1
             if progress_every and (s + 1) % progress_every == 0:
                 print(f"  sim {s + 1}/{n_sims}")
         rows = []
@@ -284,6 +295,9 @@ class Simulator:
                 "p_final": c["final"] / n_sims,
                 "p_runner_up": c["runner_up"] / n_sims,
                 "p_champion": c["champion"] / n_sims,
+                "p_first": c["first"] / n_sims,
+                "p_second": c["second"] / n_sims,
+                "p_qual3": c["qual3"] / n_sims,
             })
         df = pd.DataFrame(rows).sort_values("p_champion", ascending=False)
         return df.reset_index(drop=True)
