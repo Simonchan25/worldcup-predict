@@ -52,6 +52,11 @@ outputs/         report.md · advancement.csv · ratings.csv · match_prediction
 python3 -m http.server -d web 8765                          # 打开 http://localhost:8765 看前端
 ```
 
+**赛期自动刷新**:`scripts/refresh.sh` 每天拉取最新国际比赛结果并重跑管线(机械重算,自动在 7/19 后停)。
+已注册为 macOS LaunchAgent `com.simonchan.wc2026-refresh`(每天 9:00)。停用:
+`launchctl unload ~/Library/LaunchAgents/com.simonchan.wc2026-refresh.plist`。
+注意:新的世界杯**赔率/比分**仍需跑一次数据抓取(`build_market_data.py` + 联网),cron 只做重算不做抓取。
+
 ## 已知局限
 
 - 点球大战 50/50(文献:接近抛硬币);公平竞赛分等次级 tiebreaker 用随机代理(对夺冠概率为二阶影响)。
