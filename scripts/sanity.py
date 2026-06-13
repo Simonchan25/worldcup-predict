@@ -45,6 +45,13 @@ def check_market():
     assert imp["A"] > imp["D"]
     p = market.implied_1x2(2.1, 3.3, 3.6)
     assert abs(p.sum() - 1) < 1e-9
+    # valid_1x2: keep normal & high-margin lines, reject parse errors
+    assert market.valid_1x2(2.1, 3.3, 3.6)            # normal
+    assert market.valid_1x2(1.67, 3.9, 5.5)           # heavy favourite, real draw
+    assert not market.valid_1x2(16, 1.55, 5)          # draw-favourite (swapped)
+    assert not market.valid_1x2(1.67, 2.2, 5.5)       # impossibly short draw
+    assert not market.valid_1x2(1.06, 2.47, 6)        # short draw + broken book
+    assert market.valid_1x2(1.5, 3.2, 9.0)            # high margin but valid shape
     print("ok market")
 
 

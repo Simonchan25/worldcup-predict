@@ -52,6 +52,20 @@ def render(ctx: dict) -> str:
                  f"| {_pct(r.p_sf)} | {_pct(r.p_final)} | {_pct(r.p_champion)} |")
     L.append("")
 
+    # ---- live: model vs reality on matches already played
+    live = ctx.get("live")
+    if live is not None and len(live):
+        L.append("## 本届赛事进行中:模型 vs 实际\n")
+        L.append(f"已赛 {len(live)} 场,模型平均 RPS **{live['rps'].mean():.3f}**"
+                 f"(越低越好,回测均值约 0.207),最大概率方向命中 "
+                 f"{int(live['fav_hit'].sum())}/{len(live)}。样本极小,仅作滚动校验。\n")
+        L.append("| 日期 | 比赛 | 实际 | 模型(胜/平/负) | RPS |")
+        L.append("|---|---|---|---|---|")
+        for r in live.itertuples(index=False):
+            L.append(f"| {r.date} | {r.home} vs {r.away} | {r.actual} | "
+                     f"{_pct(r.p_home)}/{_pct(r.p_draw)}/{_pct(r.p_away)} | {r.rps:.3f} |")
+        L.append("")
+
     # ---- upcoming fixtures
     fx = ctx.get("fixtures")
     if fx is not None and len(fx):
@@ -90,6 +104,25 @@ def render(ctx: dict) -> str:
                      f"{r['rps_uniform']:.4f} | {r['rps_freq']:.4f} | "
                      f"{r['logloss_model']:.4f} | {_pct(r['exact_hit_top1'])} | "
                      f"{_pct(r['exact_hit_top5'])} |")
+        L.append("")
+
+    # ---- calibration
+    cal = ctx.get("calibration")
+    if cal is not None and len(cal):
+        ece = ctx.get("calibration_ece")
+        L.append("## 概率校准(回测 192 场,三分类 one-vs-rest 池化)\n")
+        L.append("把模型给出的所有概率按预测值分箱,对比该箱实际发生频率;校准良好则"
+                 "两列接近。" + (f"ECE(期望校准误差)= **{ece:.3f}**。\n" if ece is not None else "\n"))
+        L.append("| 预测概率区间 | 样本数 | 平均预测 | 实际频率 |")
+        L.append("|---|---|---|---|")
+        for r in cal.itertuples(index=False):
+            L.append(f"| {r.bin} | {r.n} | {_pct(r.pred_mean)} | {_pct(r.obs_freq)} |")
+        L.append("")
+        L.append("> 样本充足的 0.4–0.7 区间显示模型对强队**略偏保守**(报 50% 实际赢约 67%)。"
+                 "但 `scripts/calibration_experiment.py` 用「留一届交叉验证」检验「锐化」修正后发现:"
+                 "最优锐化幅度是逐届噪声(2014 是大热届、2022 是冷门届),调参反而让**留出届 RPS 变差"
+                 "(0.207→0.209)**。故保留 MLE 拟合值,不做事后锐化——这点保守正是模型对现代世界杯"
+                 "不可预测性应有的谦逊。")
         L.append("")
 
     # ---- methodology

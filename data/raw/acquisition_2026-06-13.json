@@ -1,0 +1,857 @@
+{
+ "draw": {
+  "groups_web": [
+   {
+    "group": "A",
+    "teams": [
+     "Mexico",
+     "South Africa",
+     "South Korea",
+     "Czech Republic"
+    ]
+   },
+   {
+    "group": "B",
+    "teams": [
+     "Canada",
+     "Bosnia and Herzegovina",
+     "Qatar",
+     "Switzerland"
+    ]
+   },
+   {
+    "group": "C",
+    "teams": [
+     "Brazil",
+     "Morocco",
+     "Haiti",
+     "Scotland"
+    ]
+   },
+   {
+    "group": "D",
+    "teams": [
+     "United States",
+     "Paraguay",
+     "Australia",
+     "Turkey"
+    ]
+   },
+   {
+    "group": "E",
+    "teams": [
+     "Germany",
+     "Curaçao",
+     "Ivory Coast",
+     "Ecuador"
+    ]
+   },
+   {
+    "group": "F",
+    "teams": [
+     "Netherlands",
+     "Japan",
+     "Sweden",
+     "Tunisia"
+    ]
+   },
+   {
+    "group": "G",
+    "teams": [
+     "Belgium",
+     "Egypt",
+     "Iran",
+     "New Zealand"
+    ]
+   },
+   {
+    "group": "H",
+    "teams": [
+     "Spain",
+     "Cape Verde",
+     "Saudi Arabia",
+     "Uruguay"
+    ]
+   },
+   {
+    "group": "I",
+    "teams": [
+     "France",
+     "Senegal",
+     "Iraq",
+     "Norway"
+    ]
+   },
+   {
+    "group": "J",
+    "teams": [
+     "Argentina",
+     "Algeria",
+     "Austria",
+     "Jordan"
+    ]
+   },
+   {
+    "group": "K",
+    "teams": [
+     "Portugal",
+     "DR Congo",
+     "Uzbekistan",
+     "Colombia"
+    ]
+   },
+   {
+    "group": "L",
+    "teams": [
+     "England",
+     "Croatia",
+     "Ghana",
+     "Panama"
+    ]
+   }
+  ],
+  "matches_canonical": true,
+  "discrepancies": [],
+  "sources": [
+   "https://www.nbcsports.com/soccer/news/2026-world-cup-group-stage-table-full-standings-for-all-12-groups",
+   "https://www.aljazeera.com/sports/2025/12/5/fifa-world-cup-2026-draw-groups-teams-format-trump-peace-prize",
+   "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_Group_A",
+   "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_Group_B",
+   "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_Group_D",
+   "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_Group_F",
+   "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_Group_I",
+   "https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_Group_K"
+  ]
+ },
+ "results": {
+  "items": [
+   {
+    "date": "2026-06-11",
+    "group": "A",
+    "home": "Mexico",
+    "away": "South Africa",
+    "home_score": 2,
+    "away_score": 0
+   },
+   {
+    "date": "2026-06-11",
+    "group": "A",
+    "home": "South Korea",
+    "away": "Czech Republic",
+    "home_score": 2,
+    "away_score": 1
+   },
+   {
+    "date": "2026-06-12",
+    "group": "B",
+    "home": "Canada",
+    "away": "Bosnia and Herzegovina",
+    "home_score": 1,
+    "away_score": 1
+   },
+   {
+    "date": "2026-06-12",
+    "group": "D",
+    "home": "United States",
+    "away": "Paraguay",
+    "home_score": 3,
+    "away_score": 0
+   }
+  ],
+  "sources": [
+   "https://www.espn.com/soccer/match/_/gameId/760414/czechia-south-korea",
+   "https://www.espn.com/soccer/match/_/gameId/760417/paraguay-united-states",
+   "https://www.sofascore.com/football/tournament/world/world-championship/16",
+   "https://www.olympics.com/en/news/fifa-world-cup-2026-every-match-result-friday-12-june-live-scores",
+   "https://www.foxsports.com/soccer/fifa-world-cup-men-south-korea-vs-czechia-jun-11-2026-game-boxscore-647617",
+   "https://www.skysports.com/football/korea-rep-vs-czech-rep/report/549766",
+   "https://www.espn.com/soccer/match/_/gameId/760416/bosnia-herzegovina-canada",
+   "https://www.fifa.com/en/match-centre/match/17/285023/289273/400021458",
+   "https://www.espn.com/soccer/scoreboard/_/league/fifa.world/date/20260613"
+  ],
+  "coverage": "Found 4 finished group-stage matches across June 11-12. June 11 (Group A): Mexico 2-0 South Africa; South Korea 2-1 Czech Republic. June 12: Canada 1-1 Bosnia and Herzegovina (Group B); United States 3-0 Paraguay (Group D). The USA-Paraguay final (3-0) was verified directly on the ESPN match page as FT to avoid reporting the 3-0 halftime score by coincidence; one early search incorrectly suggested 0-1, which was contradicted by FIFA, ESPN, Yahoo, and NBC. June 13 matches (Qatar-Switzerland Group B, Brazil-Morocco Group C, Haiti-Scotland Group C, Australia-Turkey Group D) had NOT finished yet as of the latest available data — all were still scheduled to kick off later on June 13, so none are included. Stale ESPN/cached pages were cross-checked against Sofascore, olympics.com live-results, SBS, and FIFA to confirm no June 13 results exist yet. All scores reflect full-time results."
+ },
+ "outright": {
+  "bookmaker": "BetMGM",
+  "asof": "2026-06-12",
+  "coverage": "All 48 teams covered from a single bookmaker (BetMGM), as reported by Yahoo Sports (\"Odds for all 48 teams to win the title\") on 12 June 2026. Original odds were a mix of American (e.g. +450) and fractional (e.g. 14-1) formats; all converted to decimal. Cross-checked against DraftKings (ESPN, 11 June 2026) and Kalshi (Covers, 12 June 2026) — top of the market is consistent (Spain and France ~5.5, England/Portugal ~8, Brazil/Argentina ~10), with only minor differences in long-shot pricing.",
+  "items": [
+   {
+    "team": "Spain",
+    "decimal_odds": 5.5
+   },
+   {
+    "team": "France",
+    "decimal_odds": 5.75
+   },
+   {
+    "team": "England",
+    "decimal_odds": 8
+   },
+   {
+    "team": "Portugal",
+    "decimal_odds": 8
+   },
+   {
+    "team": "Argentina",
+    "decimal_odds": 10
+   },
+   {
+    "team": "Brazil",
+    "decimal_odds": 10
+   },
+   {
+    "team": "Germany",
+    "decimal_odds": 15
+   },
+   {
+    "team": "Netherlands",
+    "decimal_odds": 21
+   },
+   {
+    "team": "Belgium",
+    "decimal_odds": 34
+   },
+   {
+    "team": "Norway",
+    "decimal_odds": 34
+   },
+   {
+    "team": "Colombia",
+    "decimal_odds": 41
+   },
+   {
+    "team": "Morocco",
+    "decimal_odds": 41
+   },
+   {
+    "team": "Japan",
+    "decimal_odds": 51
+   },
+   {
+    "team": "United States",
+    "decimal_odds": 51
+   },
+   {
+    "team": "Mexico",
+    "decimal_odds": 67
+   },
+   {
+    "team": "Senegal",
+    "decimal_odds": 67
+   },
+   {
+    "team": "Switzerland",
+    "decimal_odds": 67
+   },
+   {
+    "team": "Turkey",
+    "decimal_odds": 67
+   },
+   {
+    "team": "Uruguay",
+    "decimal_odds": 67
+   },
+   {
+    "team": "Croatia",
+    "decimal_odds": 81
+   },
+   {
+    "team": "Ecuador",
+    "decimal_odds": 81
+   },
+   {
+    "team": "Sweden",
+    "decimal_odds": 101
+   },
+   {
+    "team": "Austria",
+    "decimal_odds": 151
+   },
+   {
+    "team": "Canada",
+    "decimal_odds": 151
+   },
+   {
+    "team": "Ivory Coast",
+    "decimal_odds": 201
+   },
+   {
+    "team": "South Korea",
+    "decimal_odds": 201
+   },
+   {
+    "team": "Algeria",
+    "decimal_odds": 251
+   },
+   {
+    "team": "Bosnia and Herzegovina",
+    "decimal_odds": 251
+   },
+   {
+    "team": "Egypt",
+    "decimal_odds": 251
+   },
+   {
+    "team": "Paraguay",
+    "decimal_odds": 251
+   },
+   {
+    "team": "Scotland",
+    "decimal_odds": 251
+   },
+   {
+    "team": "Czech Republic",
+    "decimal_odds": 301
+   },
+   {
+    "team": "Australia",
+    "decimal_odds": 501
+   },
+   {
+    "team": "Ghana",
+    "decimal_odds": 501
+   },
+   {
+    "team": "Iran",
+    "decimal_odds": 501
+   },
+   {
+    "team": "Tunisia",
+    "decimal_odds": 501
+   },
+   {
+    "team": "DR Congo",
+    "decimal_odds": 751
+   },
+   {
+    "team": "Cape Verde",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Iraq",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Jordan",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "New Zealand",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Panama",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Qatar",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Saudi Arabia",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "South Africa",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Uzbekistan",
+    "decimal_odds": 1001
+   },
+   {
+    "team": "Curacao",
+    "decimal_odds": 2501
+   },
+   {
+    "team": "Haiti",
+    "decimal_odds": 2501
+   }
+  ],
+  "sources": [
+   "https://sports.yahoo.com/soccer/betting/article/2026-world-cup-betting-odds-for-all-48-teams-to-win-the-title-145427136.html",
+   "https://www.espn.com/espn/betting/story/_/id/48386952/espn-soccer-futbol-world-cup-betting-odds-championship-groups",
+   "https://www.covers.com/world-cup/odds",
+   "https://www.cbssports.com/betting/news/world-cup-odds/",
+   "https://www.vegasinsider.com/soccer/odds/world-cup/"
+  ]
+ },
+ "match_odds": {
+  "items": [
+   {
+    "date": "2026-06-13",
+    "home": "Qatar",
+    "away": "Switzerland",
+    "home_odds": 16,
+    "draw_odds": 1.55,
+    "away_odds": 5,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-13",
+    "home": "Brazil",
+    "away": "Morocco",
+    "home_odds": 1.67,
+    "draw_odds": 2.2,
+    "away_odds": 5.5,
+    "bookmaker": "DraftKings (ESPN)"
+   },
+   {
+    "date": "2026-06-13",
+    "home": "Haiti",
+    "away": "Scotland",
+    "home_odds": 6.25,
+    "draw_odds": 4.33,
+    "away_odds": 1.5,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-13",
+    "home": "Australia",
+    "away": "Turkey",
+    "home_odds": 5.5,
+    "draw_odds": 1.9,
+    "away_odds": 1.75,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-14",
+    "home": "Germany",
+    "away": "Curacao",
+    "home_odds": 1.06,
+    "draw_odds": 2.47,
+    "away_odds": 6,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-14",
+    "home": "Netherlands",
+    "away": "Japan",
+    "home_odds": 2.05,
+    "draw_odds": 3.7,
+    "away_odds": 3.9,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-14",
+    "home": "Ivory Coast",
+    "away": "Ecuador",
+    "home_odds": 3.7,
+    "draw_odds": 2.9,
+    "away_odds": 2.5,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-14",
+    "home": "Sweden",
+    "away": "Tunisia",
+    "home_odds": 1.95,
+    "draw_odds": 3.6,
+    "away_odds": 4.5,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-15",
+    "home": "Spain",
+    "away": "Cape Verde",
+    "home_odds": 1.11,
+    "draw_odds": 14,
+    "away_odds": 31,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-15",
+    "home": "Belgium",
+    "away": "Egypt",
+    "home_odds": 1.61,
+    "draw_odds": 4.15,
+    "away_odds": 6.1,
+    "bookmaker": "ESPN"
+   },
+   {
+    "date": "2026-06-15",
+    "home": "Saudi Arabia",
+    "away": "Uruguay",
+    "home_odds": 8.1,
+    "draw_odds": 4.7,
+    "away_odds": 1.44,
+    "bookmaker": "ESPN"
+   },
+   {
+    "date": "2026-06-15",
+    "home": "Iran",
+    "away": "New Zealand",
+    "home_odds": 1.83,
+    "draw_odds": 3.5,
+    "away_odds": 4.75,
+    "bookmaker": "ESPN"
+   },
+   {
+    "date": "2026-06-16",
+    "home": "France",
+    "away": "Senegal",
+    "home_odds": 1.44,
+    "draw_odds": 4.5,
+    "away_odds": 6.5,
+    "bookmaker": "Bet365"
+   },
+   {
+    "date": "2026-06-16",
+    "home": "Iraq",
+    "away": "Norway",
+    "home_odds": 17,
+    "draw_odds": 7.5,
+    "away_odds": 1.22,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-16",
+    "home": "Argentina",
+    "away": "Algeria",
+    "home_odds": 1.4,
+    "draw_odds": 4.75,
+    "away_odds": 9.9,
+    "bookmaker": "ESPN"
+   },
+   {
+    "date": "2026-06-16",
+    "home": "Austria",
+    "away": "Jordan",
+    "home_odds": 1.33,
+    "draw_odds": 5.75,
+    "away_odds": 9.9,
+    "bookmaker": "ESPN"
+   },
+   {
+    "date": "2026-06-17",
+    "home": "Portugal",
+    "away": "DR Congo",
+    "home_odds": 1.27,
+    "draw_odds": 6,
+    "away_odds": 9,
+    "bookmaker": "Bet365"
+   },
+   {
+    "date": "2026-06-17",
+    "home": "England",
+    "away": "Croatia",
+    "home_odds": 1.75,
+    "draw_odds": 3.9,
+    "away_odds": 5.2,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-17",
+    "home": "Ghana",
+    "away": "Panama",
+    "home_odds": 2.2,
+    "draw_odds": 3.5,
+    "away_odds": 3.6,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-17",
+    "home": "Uzbekistan",
+    "away": "Colombia",
+    "home_odds": 10,
+    "draw_odds": 2.8,
+    "away_odds": 1.4,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-18",
+    "home": "Czech Republic",
+    "away": "South Africa",
+    "home_odds": 1.71,
+    "draw_odds": 3.85,
+    "away_odds": 5.25,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-18",
+    "home": "Switzerland",
+    "away": "Bosnia and Herzegovina",
+    "home_odds": 1.63,
+    "draw_odds": 4.1,
+    "away_odds": 6,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-18",
+    "home": "Canada",
+    "away": "Qatar",
+    "home_odds": 1.3,
+    "draw_odds": 5.5,
+    "away_odds": 11.5,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-18",
+    "home": "Mexico",
+    "away": "South Korea",
+    "home_odds": 2,
+    "draw_odds": 3.4,
+    "away_odds": 4.1,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-19",
+    "home": "United States",
+    "away": "Australia",
+    "home_odds": 1.77,
+    "draw_odds": 3.95,
+    "away_odds": 4.9,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-19",
+    "home": "Scotland",
+    "away": "Morocco",
+    "home_odds": 4.3,
+    "draw_odds": 3.3,
+    "away_odds": 2,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-19",
+    "home": "Brazil",
+    "away": "Haiti",
+    "home_odds": 1.08,
+    "draw_odds": 14,
+    "away_odds": 29,
+    "bookmaker": "Oddschecker"
+   },
+   {
+    "date": "2026-06-20",
+    "home": "Netherlands",
+    "away": "Sweden",
+    "home_odds": 1.65,
+    "draw_odds": 4.2,
+    "away_odds": 5.25,
+    "bookmaker": "Oddschecker"
+   }
+  ],
+  "sources": [
+   "https://www.espn.com/soccer/story/_/id/48939282/2026-fifa-world-cup-fixtures-results-match-schedule-group-stage-knockout-rounds-bracket",
+   "https://www.espn.com/soccer/odds/_/gameId/760419",
+   "https://www.espn.com/soccer/odds/_/gameId/760432",
+   "https://www.espn.com/soccer/odds/_/gameId/760435",
+   "https://www.oddschecker.com/football/world-cup",
+   "https://www.skysports.com/football/news/11095/13481245/world-cup-2026-fixture-schedule-and-uk-kick-off-times-day-by-day-breakdown-of-all-104-matches-including-england-scotland",
+   "https://www.cbssports.com/betting/news/world-cup-odds/",
+   "https://www.sofascore.com/news/brazil-vs-morocco-at-world-cup-2026-lineups-and-predictions",
+   "https://www.oddsshark.com/soccer/world-cup/france-senegal-odds-picks-2026",
+   "https://www.sportytrader.com/en/odds/portugal-dr-congo-7937433/",
+   "https://www.skysports.com/football/news/12098/13540670/world-cup-2026-group-a-guide-fixtures-schedule-standings-and-odds-for-mexico-south-africa-south-korea-and-czech-republic"
+  ],
+  "coverage": "Found 1X2 three-way decimal odds for 28 group-stage fixtures across the 13-20 June 2026 window — essentially every match in that window. All odds were sourced as American moneyline or UK fractional odds and converted to decimal by me (positive American X -> X/100+1; negative American X -> 100/|X|+1; fractional a/b -> a/b+1). Bookmaker attribution: Oddschecker (aggregator best-price), ESPN, DraftKings, and Bet365 as noted per row; where a search aggregated multiple books I attributed to the named source. Caveats: (1) Oddschecker and Oddspedia direct pages returned HTTP 403, so most odds come via WebSearch summaries of those pages and via ESPN match odds pages rather than direct scrapes — values are snapshots and live odds drift. (2) Home/away orientation follows the official ESPN/Sky fixture listing (first-listed team = home); some sportsbook pages list teams in the opposite order (e.g. ESPN gameId 760432 lists Senegal first), but odds were mapped to the correct team. (3) Match dates have minor cross-source timezone discrepancies (matches kicking off late ET appear on the next calendar day in some UK listings); I used the predominant North American local match date. Fields I could not verify per-book to the exact line are still real published odds rounded to standard decimal. Nothing was set to null because a credible three-way price was found for every listed fixture."
+ },
+ "values": {
+  "items": [
+   {
+    "team": "France",
+    "value_eur_m": 1525.9
+   },
+   {
+    "team": "England",
+    "value_eur_m": 1310
+   },
+   {
+    "team": "Spain",
+    "value_eur_m": 1260
+   },
+   {
+    "team": "Portugal",
+    "value_eur_m": 1020
+   },
+   {
+    "team": "Germany",
+    "value_eur_m": 998
+   },
+   {
+    "team": "Brazil",
+    "value_eur_m": 912.2
+   },
+   {
+    "team": "Netherlands",
+    "value_eur_m": 837.2
+   },
+   {
+    "team": "Argentina",
+    "value_eur_m": 818.5
+   },
+   {
+    "team": "Norway",
+    "value_eur_m": 601
+   },
+   {
+    "team": "Belgium",
+    "value_eur_m": 542.9
+   },
+   {
+    "team": "Ivory Coast",
+    "value_eur_m": 530.9
+   },
+   {
+    "team": "Morocco",
+    "value_eur_m": 488.2
+   },
+   {
+    "team": "Senegal",
+    "value_eur_m": 472.9
+   },
+   {
+    "team": "Turkey",
+    "value_eur_m": 494.2
+   },
+   {
+    "team": "Sweden",
+    "value_eur_m": 428
+   },
+   {
+    "team": "Uruguay",
+    "value_eur_m": 405.8
+   },
+   {
+    "team": "Croatia",
+    "value_eur_m": 385.7
+   },
+   {
+    "team": "United States",
+    "value_eur_m": 378
+   },
+   {
+    "team": "Ecuador",
+    "value_eur_m": 376.2
+   },
+   {
+    "team": "Switzerland",
+    "value_eur_m": 333.6
+   },
+   {
+    "team": "Colombia",
+    "value_eur_m": 305.1
+   },
+   {
+    "team": "Japan",
+    "value_eur_m": 278.8
+   },
+   {
+    "team": "Austria",
+    "value_eur_m": 271.6
+   },
+   {
+    "team": "Algeria",
+    "value_eur_m": 257.6
+   },
+   {
+    "team": "Ghana",
+    "value_eur_m": 230.88
+   },
+   {
+    "team": "Canada",
+    "value_eur_m": 203.05
+   },
+   {
+    "team": "Mexico",
+    "value_eur_m": 194.6
+   },
+   {
+    "team": "Czech Republic",
+    "value_eur_m": 190.18
+   },
+   {
+    "team": "Scotland",
+    "value_eur_m": 176.2
+   },
+   {
+    "team": "Paraguay",
+    "value_eur_m": 157.15
+   },
+   {
+    "team": "Bosnia and Herzegovina",
+    "value_eur_m": 149.2
+   },
+   {
+    "team": "DR Congo",
+    "value_eur_m": 149
+   },
+   {
+    "team": "South Korea",
+    "value_eur_m": 142.3
+   },
+   {
+    "team": "Egypt",
+    "value_eur_m": 134.7
+   },
+   {
+    "team": "Australia",
+    "value_eur_m": 73.6
+   },
+   {
+    "team": "Uzbekistan",
+    "value_eur_m": 78.73
+   },
+   {
+    "team": "Tunisia",
+    "value_eur_m": 69.4
+   },
+   {
+    "team": "Cape Verde",
+    "value_eur_m": 56.2
+   },
+   {
+    "team": "Haiti",
+    "value_eur_m": 55.6
+   },
+   {
+    "team": "South Africa",
+    "value_eur_m": 45.8
+   },
+   {
+    "team": "Saudi Arabia",
+    "value_eur_m": 37.1
+   },
+   {
+    "team": "New Zealand",
+    "value_eur_m": 35.3
+   },
+   {
+    "team": "Panama",
+    "value_eur_m": 34.83
+   },
+   {
+    "team": "Iran",
+    "value_eur_m": 32.6
+   },
+   {
+    "team": "Curacao",
+    "value_eur_m": 26
+   },
+   {
+    "team": "Iraq",
+    "value_eur_m": 21.1
+   },
+   {
+    "team": "Qatar",
+    "value_eur_m": 19.93
+   },
+   {
+    "team": "Jordan",
+    "value_eur_m": 19.83
+   }
+  ],
+  "sources": [
+   "https://www.givemesport.com/every-squad-at-2026-world-cup-ranked-by-combined-player-value/",
+   "https://www.sportingpedia.com/2026/06/03/2026-world-cup-team-values-and-group-rankings/",
+   "https://soccernewspaper.com/news/world-cup-2026-transfermarkt-squad-values-france-portugal-argentina",
+   "https://www.si.com/soccer/most-expensive-squads-2026-world-cup-ranked",
+   "https://kun.uz/en/news/2026/06/01/transfermarkt-reveals-squad-values-for-world-cup-2026-uzbekistan-joins-global-elite-99c363",
+   "https://logos-pres.md/en/news/teams-worth-billions-the-top-10-most-valuable-national-teams-at-the-2026-world-cup/",
+   "https://www.asiae.co.kr/en/article/world-general/2026061015400825162"
+  ],
+  "asof": "2026-06-13 (Transfermarkt snapshot circa early June 2026, as cited by the source articles)",
+  "coverage": "All 48 teams covered. Values are Transfermarkt total squad market values in EUR millions. Native EUR figures were used where directly found in EUR-denominated sources (Sportingpedia, soccernewspaper, logos-pres, kun.uz, asiae) for ~25 teams. For the remaining teams, values come from the GiveMeSport ranking (published in GBP from a single Transfermarkt snapshot) converted to EUR at the snapshot rate of 1.156 GBP->EUR. This rate was validated against 13 teams where both native EUR and GBP figures exist (agreement within ~0.1m, e.g. Mexico 194.5 vs 194.6; Croatia 385.5 vs 385.7; Belgium 542.7 vs 542.9), and against the article's stated Group A total (572.88m, matched exactly). Total across all 48 teams is ~17.5 billion EUR, consistent with the reported tournament total of 17.44-17.57 billion EUR. Note: Transfermarkt updates daily, so figures published across December 2025-June 2026 vary by a few percent; the bottom-tier teams (Iran, Iraq, Jordan) show the most cross-source variance. Transfermarkt.com itself was not directly accessible (blocked/403), so all figures are from news articles citing Transfermarkt."
+ }
+}

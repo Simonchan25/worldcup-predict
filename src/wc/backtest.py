@@ -35,6 +35,46 @@ def _outcome(hs, as_):
     return 0 if hs > as_ else (1 if hs == as_ else 2)
 
 
+def calibration_table(per_match: pd.DataFrame, n_bins: int = 10) -> pd.DataFrame:
+    """Reliability of the predicted probabilities, pooled one-vs-rest over the
+    three outcomes (each match contributes its pW/pD/pA against whether that
+    outcome occurred). A well-calibrated model sits on the diagonal:
+    mean predicted ≈ observed frequency in every bin.
+    """
+    if not len(per_match):
+        return pd.DataFrame()
+    probs, hits = [], []
+    for r in per_match.itertuples(index=False):
+        occ = {"H": 0, "D": 1, "A": 2}[r.outcome]
+        for k, p in enumerate((r.p_home, r.p_draw, r.p_away)):
+            probs.append(float(p))
+            hits.append(1.0 if k == occ else 0.0)
+    probs = np.array(probs)
+    hits = np.array(hits)
+    edges = np.linspace(0.0, 1.0, n_bins + 1)
+    idx = np.clip(np.digitize(probs, edges) - 1, 0, n_bins - 1)
+    rows = []
+    for b in range(n_bins):
+        m = idx == b
+        if not m.any():
+            continue
+        rows.append({
+            "bin": f"{edges[b]:.1f}-{edges[b + 1]:.1f}",
+            "n": int(m.sum()),
+            "pred_mean": float(probs[m].mean()),
+            "obs_freq": float(hits[m].mean()),
+        })
+    return pd.DataFrame(rows)
+
+
+def ece(cal: pd.DataFrame) -> float:
+    """Expected Calibration Error: n-weighted mean |pred-obs| across bins."""
+    if cal is None or not len(cal):
+        return float("nan")
+    return float((cal["n"] * (cal["pred_mean"] - cal["obs_freq"]).abs()).sum()
+                 / cal["n"].sum())
+
+
 def run_backtest(df: pd.DataFrame, xi: float = 0.25):
     """df: full results frame with elo_h/elo_a columns. Returns
     (per-match frame, per-tournament summary frame)."""
@@ -88,4 +128,4 @@ def run_backtest(df: pd.DataFrame, xi: float = 0.25):
     overall.index = ["all"]
     overall["n"] = len(per_match)
     summary = pd.concat([summary, overall])
-    return per_match, summary
+    return per_match, summary, calibration_table(per_match)

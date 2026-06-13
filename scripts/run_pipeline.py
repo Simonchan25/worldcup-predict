@@ -70,6 +70,26 @@ def main():
     fixtures.to_csv(out / "match_predictions.csv", index=False)
     print(f"== {len(fixtures)} upcoming fixtures predicted ==")
 
+    # 4b. live out-of-sample check: model vs realized on already-played matches
+    live = simulate.predict_fixtures(
+        wc["schedule"], ratings, params, "2026-06-01", "2026-08-01")
+    live = live[live["status"] == "played"].copy()
+    if len(live):
+        live["actual"] = (live["home_score"].astype(int).astype(str) + "-"
+                          + live["away_score"].astype(int).astype(str))
+        live["outcome"] = np.where(live["home_score"] > live["away_score"], "H",
+                          np.where(live["home_score"] == live["away_score"], "D", "A"))
+        live["fav_hit"] = live.apply(lambda r: int(
+            (r["outcome"] == "H" and r["p_home"] >= max(r["p_draw"], r["p_away"])) or
+            (r["outcome"] == "A" and r["p_away"] >= max(r["p_draw"], r["p_home"])) or
+            (r["outcome"] == "D" and r["p_draw"] >= max(r["p_home"], r["p_away"]))), axis=1)
+        live["rps"] = live.apply(lambda r: backtest.rps(
+            [r["p_home"], r["p_draw"], r["p_away"]],
+            {"H": 0, "D": 1, "A": 2}[r["outcome"]]), axis=1)
+        live.to_csv(out / "live_eval.csv", index=False)
+        print(f"== live check: {len(live)} played, mean model RPS "
+              f"{live['rps'].mean():.3f}, favourite called {int(live['fav_hit'].sum())}/{len(live)} ==")
+
     # 5. tournament simulation
     print(f"== simulating tournament x{args.sims} ==")
     sim = simulate.Simulator(wc["schedule"], wc["groups"], wc["format"],
@@ -93,11 +113,15 @@ def main():
         market_outright.to_csv(out / "market_compare_outright.csv", index=False)
 
     fixtures_market = None
+    dropped_odds = []
     om = wc.get("odds_matches")
     if om:
         rows = []
         for o in om:
             try:
+                if not market.valid_1x2(o["home_odds"], o["draw_odds"], o["away_odds"]):
+                    dropped_odds.append(f"{o.get('home')} vs {o.get('away')}")
+                    continue
                 p = market.implied_1x2(o["home_odds"], o["draw_odds"], o["away_odds"])
             except (KeyError, TypeError, ZeroDivisionError):
                 continue
@@ -109,6 +133,10 @@ def main():
             fixtures_market.to_csv(out / "market_compare_matches.csv", index=False)
             sources["单场赔率"] = f"{len(fixtures_market)} 场, " + \
                 str(fixtures_market["source"].mode().iat[0] if len(fixtures_market) else "")
+            if dropped_odds:
+                sources["单场赔率"] += (f";剔除 {len(dropped_odds)} 场疑似解析错误的赔率"
+                                       f"({', '.join(dropped_odds)})")
+                print("   dropped implausible odds rows:", dropped_odds)
 
     if wc.get("elo_external"):
         sources["外部 Elo 对照"] = f"{wc['elo_external'].get('source', '?')}(截至 {wc['elo_external'].get('asof', '?')})"
@@ -117,11 +145,15 @@ def main():
 
     # 7. backtest
     bt_summary = None
+    calibration = None
     if not args.skip_backtest:
         print("== backtesting 2014/2018/2022 ==")
-        per_match, bt_summary = backtest.run_backtest(df, xi=args.xi)
+        per_match, bt_summary, calibration = backtest.run_backtest(df, xi=args.xi)
         per_match.to_csv(out / "backtest_matches.csv", index=False)
         bt_summary.to_csv(out / "backtest_summary.csv")
+        if calibration is not None and len(calibration):
+            calibration.to_csv(out / "calibration.csv", index=False)
+            print(f"   calibration ECE = {backtest.ece(calibration):.4f}")
         print(bt_summary.round(4).to_string())
 
     # 8. report + JSON bundle
@@ -137,6 +169,9 @@ def main():
         "fixtures": fixtures,
         "fixtures_market": fixtures_market,
         "backtest_summary": bt_summary,
+        "calibration": calibration,
+        "calibration_ece": backtest.ece(calibration) if calibration is not None else None,
+        "live": live if len(live) else None,
         "sources": sources,
     }
     (out / "report.md").write_text(report.render(ctx), encoding="utf-8")

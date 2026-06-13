@@ -15,7 +15,7 @@ def main():
     print("running Elo ...")
     _, df = elo.run_elo(df)
     print("backtesting 2014/2018/2022 ...")
-    per_match, summary = backtest.run_backtest(df)
+    per_match, summary, _cal = backtest.run_backtest(df)
     out = data.OUT
     out.mkdir(exist_ok=True)
     per_match.to_csv(out / "backtest_matches.csv", index=False)
