@@ -143,9 +143,10 @@ def main():
     if wc.get("squad_values"):
         sources["阵容市值"] = f"{wc['squad_values'].get('source', '?')}(截至 {wc['squad_values'].get('asof', '?')})"
 
-    # 7. backtest
+    # 7. backtest + market-beat
     bt_summary = None
     calibration = None
+    market_beat = None
     if not args.skip_backtest:
         print("== backtesting 2014/2018/2022 ==")
         per_match, bt_summary, calibration = backtest.run_backtest(df, xi=args.xi)
@@ -155,6 +156,21 @@ def main():
             calibration.to_csv(out / "calibration.csv", index=False)
             print(f"   calibration ECE = {backtest.ece(calibration):.4f}")
         print(bt_summary.round(4).to_string())
+
+        hist_path = data.RAW / "historical_odds_acq.json"
+        if hist_path.exists():
+            from wc import market_backtest  # noqa: E402
+            market_beat = market_backtest.market_beat(
+                per_match, market_backtest.load_hist(hist_path))
+            (out / "market_beat.json").write_text(
+                json.dumps(market_beat, ensure_ascii=False, indent=1), encoding="utf-8")
+            o = market_beat.get("overall")
+            if o:
+                print(f"   MARKET-BEAT ({o['n']} bookmaker matches): model RPS "
+                      f"{o['rps_model']:.4f} vs market {o['rps_market']:.4f} -> "
+                      f"{'MODEL beats market' if o['model_better'] else 'market wins'}")
+            for t in market_beat["tournaments"]:
+                print(f"     {t['wc']:16} n={t['n']:<3} model {t['rps_model']:.4f} / market {t['rps_market']:.4f}")
 
     # 8. report + JSON bundle
     ctx = {
@@ -171,6 +187,7 @@ def main():
         "backtest_summary": bt_summary,
         "calibration": calibration,
         "calibration_ece": backtest.ece(calibration) if calibration is not None else None,
+        "market_beat": market_beat,
         "live": live if len(live) else None,
         "sources": sources,
     }
@@ -187,6 +204,26 @@ def main():
     (out / "predictions.json").write_text(
         json.dumps(bundle, ensure_ascii=False, indent=1, default=str),
         encoding="utf-8")
+
+    # 9. frontend data bundle (with per-match reasoning)
+    from wc import webdata  # noqa: E402
+    mb_path = out / "market_beat.json"
+    market_beat = json.loads(mb_path.read_text(encoding="utf-8")) if mb_path.exists() else None
+    web_bundle = webdata.build_bundle(
+        asof=str(today.date()), n_sims=args.sims, df=df, groups=wc["groups"],
+        schedule=wc["schedule"], ratings_elo=ratings_elo, ratings=ratings, values=values,
+        fixtures=fixtures, live=live, adv=adv, market_outright=market_outright,
+        fixtures_market=fixtures_market, fit=fit, blend_info=blend_info,
+        bt_summary=bt_summary, calibration=calibration,
+        calibration_ece=(backtest.ece(calibration) if calibration is not None else None),
+        market_beat=market_beat, sources=sources)
+    web_dir = data.ROOT / "web"
+    web_dir.mkdir(exist_ok=True)
+    (web_dir / "data.js").write_text(
+        "window.WC_DATA = " + json.dumps(web_bundle, ensure_ascii=False) + ";\n",
+        encoding="utf-8")
+    print(f"== web bundle: {len(web_bundle['fixtures'])} fixtures, "
+          f"{len(web_bundle['leaderboard'])} teams -> web/data.js ==")
     print("== done ==")
     print("report:", out / "report.md")
 

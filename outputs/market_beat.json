@@ -1,0 +1,52 @@
+{
+ "tournaments": [
+  {
+   "wc": "2014 (Betfair)",
+   "kind": "Betfair 赔率",
+   "n": 64,
+   "rps_model": 0.18757159613840868,
+   "rps_market": 0.1921384837078916,
+   "is_bookmaker": true,
+   "unmatched": 0,
+   "source": "woobe/wc2014 GitHub repo — data_wc2014.xlsx (sheet \"model_data\"), containing Betfair pre-match decimal 1X2 odds (BF_H/BF_D/BF_A) for all 64 matches, alongside Bloomberg/FiveThirtyEight win probabilities. Downloaded and parsed the raw .xlsx directly."
+  },
+  {
+   "wc": "2018 (Betfair)",
+   "kind": "Betfair 赔率",
+   "n": 48,
+   "rps_model": 0.2065194777064694,
+   "rps_market": 0.1904236490546578,
+   "is_bookmaker": true,
+   "unmatched": 0,
+   "source": "jimmyday12/plussixoneblog GitHub repo — world_cup_2018_betfair.csv (Betfair pre-match decimal 1X2 odds)"
+  },
+  {
+   "wc": "2018 (538)",
+   "kind": "FiveThirtyEight 模型",
+   "n": 64,
+   "rps_model": 0.20858619395405995,
+   "rps_market": 0.19863543695312502,
+   "is_bookmaker": false,
+   "unmatched": 0,
+   "source": "FiveThirtyEight SPI-based World Cup match forecasts (wc_matches.csv), retrieved via Wayback Machine archived snapshots of projects.fivethirtyeight.com/soccer-api"
+  },
+  {
+   "wc": "2022 (538)",
+   "kind": "FiveThirtyEight 模型",
+   "n": 64,
+   "rps_model": 0.22431994114417056,
+   "rps_market": 0.21916480718749998,
+   "is_bookmaker": false,
+   "unmatched": 0,
+   "source": "FiveThirtyEight SPI-based World Cup match forecasts (wc_matches.csv), retrieved via Wayback Machine archived snapshots of projects.fivethirtyeight.com/soccer-api"
+  }
+ ],
+ "overall": {
+  "n": 112,
+  "rps_model": 0.19569211681043472,
+  "rps_market": 0.19140355457079142,
+  "model_better": false,
+  "margin": -0.004288562239643301
+ },
+ "note": "对标真实博彩闭线（2014+2018 Betfair）。市场赔率经 proportional 去 margin。538 行为职业模型对照。RPS 越低越好；模型要「跑赢市场」须 RPS ≤ 市场。样本为可联网取得的历史赔率，不含全部淘汰赛场次。"
+}

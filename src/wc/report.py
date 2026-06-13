@@ -106,6 +106,28 @@ def render(ctx: dict) -> str:
                      f"{_pct(r['exact_hit_top5'])} |")
         L.append("")
 
+    # ---- market-beat
+    mb = ctx.get("market_beat")
+    if mb and mb.get("tournaments"):
+        L.append("## 能否跑赢市场?(历史世界杯赔率对标)\n")
+        L.append("模型的赛前概率(严格 cutoff 训练)与同场比赛的市场/职业模型并排,同用 RPS 打分。RPS 越低越好。\n")
+        L.append("| 数据 | 类型 | 场次 | 模型 RPS | 对手 RPS | 谁更优 |")
+        L.append("|------|------|------|---------|---------|--------|")
+        for t in mb["tournaments"]:
+            win = "**模型**" if t["rps_model"] <= t["rps_market"] else "对手"
+            L.append(f"| {t['wc']} | {t['kind']} | {t['n']} | {t['rps_model']:.4f} | "
+                     f"{t['rps_market']:.4f} | {win} |")
+        L.append("")
+        o = mb.get("overall")
+        if o:
+            verdict = ("**模型 RPS ≤ 市场**——在该样本上跑平/略胜闭线"
+                       if o["model_better"] else "**市场更优**——模型未能跑赢闭线")
+            L.append(f"对标真实博彩({o['n']} 场 2014+2018 Betfair):模型 RPS {o['rps_model']:.4f} "
+                     f"vs 市场 {o['rps_market']:.4f}(Δ{o['margin']:+.4f})。{verdict}。")
+            L.append("")
+            L.append("> 诚实提示:这是足球版「能否跑赢市场」。跑平闭线已属不易,持续显著跑赢极罕见"
+                     "(与股票同理)。样本仅含可联网取得的历史赔率,不含全部淘汰赛。\n")
+
     # ---- calibration
     cal = ctx.get("calibration")
     if cal is not None and len(cal):
