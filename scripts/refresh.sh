@@ -37,6 +37,9 @@ fi
     rm -f data/raw/results.csv.tmp
     echo "results.csv download failed — keeping existing"
   fi
+  if [[ -f .secrets.local.json ]]; then
+    "$PY" scripts/fetch_live_odds.py || echo "live-odds fetch failed — using last odds"
+  fi
   "$PY" scripts/run_pipeline.py --sims 50000
   echo "=== done $(date) ==="
 } >>"$LOG" 2>&1

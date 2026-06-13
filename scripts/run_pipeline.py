@@ -197,6 +197,8 @@ def main():
                 if (data.WC / "injuries.json").exists() else None)
     methodology = (json.loads((data.WC / "methodology.json").read_text(encoding="utf-8"))
                    if (data.WC / "methodology.json").exists() else None)
+    live_odds = (json.loads((data.WC / "odds_live.json").read_text(encoding="utf-8"))
+                 if (data.WC / "odds_live.json").exists() else None)
     ctx = {
         "asof": str(today.date()),
         "n_sims": args.sims,
@@ -242,7 +244,7 @@ def main():
         bt_summary=bt_summary, calibration=calibration,
         calibration_ece=(backtest.ece(calibration) if calibration is not None else None),
         market_beat=market_beat, betting_backtest=betting_bt, value_bets=value_bets,
-        injuries=injuries, methodology=methodology, sources=sources)
+        injuries=injuries, methodology=methodology, live_odds=live_odds, sources=sources)
     web_dir = data.ROOT / "web"
     web_dir.mkdir(exist_ok=True)
     (web_dir / "data.js").write_text(

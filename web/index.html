@@ -3,101 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 世界杯预测 · Elo + Dixon-Coles + Monte Carlo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>世界杯概率预测 · World Cup Probability</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="bg-grad"></div>
 
-<header class="hero">
-  <div class="hero-inner">
-    <div class="hero-tag">FIFA WORLD CUP 2026 · 🇺🇸 🇨🇦 🇲🇽</div>
-    <h1>世界杯<span class="grad">预测引擎</span></h1>
-    <p class="hero-sub" id="hero-sub">加载中…</p>
-    <div class="hero-stats" id="hero-stats"></div>
-    <div class="hero-note">基准不是「猜中率」，而是对标博彩赔率的概率校准（RPS）。每一条判断都由数据生成，可追溯。</div>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🏆</span>
+    <span class="brand-txt"><b>世界杯概率预测</b><small>World Cup Probability · 2026</small></span>
+  </div>
+  <nav class="topnav" id="topnav"></nav>
+  <div class="topright">
+    <span class="chip" id="asof-chip">—</span>
+    <span class="chip live" id="live-chip"></span>
   </div>
 </header>
 
-<nav class="tabs" id="tabs">
-  <a href="#champ" class="tab active">🏆 夺冠预测</a>
-  <a href="#matches" class="tab">⚽ 比赛预测</a>
-  <a href="#betting" class="tab">💰 赔率与价值</a>
-  <a href="#groups" class="tab">📊 小组形势</a>
-  <a href="#live" class="tab">🔴 本届实测</a>
-  <a href="#cred" class="tab">🔬 模型可信度</a>
-  <a href="#mirror" class="tab">🔮 照妖镜</a>
-</nav>
-
-<main>
-  <section id="champ" class="sec">
-    <h2 class="sec-title">夺冠概率 <span class="sec-sub">模型 vs 博彩市场</span></h2>
-    <p class="sec-lead" id="champ-lead"></p>
-    <div id="champ-board" class="champ-board"></div>
-    <div class="diverge-wrap">
-      <h3 class="mini-title">模型与市场最大分歧 <span class="dim">（模型认为市场定价偏离之处）</span></h3>
-      <div id="diverge" class="diverge-grid"></div>
+<div class="shell">
+  <aside class="sidebar">
+    <nav class="sidenav" id="sidenav"></nav>
+    <div class="side-card">
+      <div class="sc-title">预测说明</div>
+      <p>基于 Elo 评分、球队状态、阵容市值、历史数据、博彩赔率等多维数据，Dixon-Coles 双泊松 + 5 万次蒙特卡洛模拟。基准是<b>对标赔率的概率校准（RPS）</b>，不是「猜中率」。</p>
     </div>
-  </section>
-
-  <section id="matches" class="sec">
-    <h2 class="sec-title">比赛预测 <span class="sec-sub">每场的胜平负、比分与判断依据</span></h2>
-    <div class="filters" id="match-filters"></div>
-    <div id="match-grid" class="match-grid"></div>
-  </section>
-
-  <section id="betting" class="sec">
-    <h2 class="sec-title">赔率与价值 <span class="sec-sub">「怎么下注收益最大」的诚实答案</span></h2>
-    <p class="sec-lead" id="betting-lead"></p>
-    <div class="bet-cols">
-      <div class="card bet-card">
-        <h3 class="mini-title">模型识别的「正 EV」边 <span class="dim">（模型概率 × 赔率 − 1 > 0）</span></h3>
-        <div id="value-table"></div>
-      </div>
-      <div class="card bet-card">
-        <h3 class="mini-title">⚠️ 历史回测：这些边能赚钱吗？</h3>
-        <div id="bet-backtest"></div>
-        <div id="bet-verdict" class="verdict"></div>
-      </div>
+    <div class="side-card">
+      <div class="sc-title">数据更新</div>
+      <div id="side-update" class="sc-update">—</div>
     </div>
-  </section>
+    <div class="side-trophy">🏆</div>
+  </aside>
 
-  <section id="groups" class="sec">
-    <h2 class="sec-title">小组形势 <span class="sec-sub">实时积分 + 出线概率（5 万次模拟）</span></h2>
-    <div id="group-grid" class="group-grid"></div>
-  </section>
-
-  <section id="live" class="sec">
-    <h2 class="sec-title">本届实测 <span class="sec-sub">已赛比赛：模型赛前预测 vs 实际结果</span></h2>
-    <p class="sec-lead" id="live-lead"></p>
-    <div id="live-grid" class="live-grid"></div>
-  </section>
-
-  <section id="cred" class="sec">
-    <h2 class="sec-title">模型可信度 <span class="sec-sub">严格 cutoff 回测 · 概率校准 · 市场对标</span></h2>
-    <div class="cred-grid">
-      <div class="card cred-card"><h3 class="mini-title">历届世界杯回测</h3><div id="bt-table"></div>
-        <p class="card-note">RPS 越低越好；模型完胜均匀基线(0.242)。精确比分命中约 11.5%——这是国家队足球的理论上限附近。</p></div>
-      <div class="card cred-card"><h3 class="mini-title">概率校准 <span id="ece-badge" class="badge-inline"></span></h3><div id="cal-chart"></div>
-        <p class="card-note">点越靠近对角线越校准。0.4–0.7 区间略偏保守，但留一届交叉验证证明「锐化」不可泛化，故保留原参。</p></div>
-      <div class="card cred-card" id="mb-card"><h3 class="mini-title">市场对标回测 <span class="dim">（能否跑赢赔率）</span></h3><div id="mb-body"></div></div>
-    </div>
-    <div class="method card" id="method"></div>
-  </section>
-
-  <section id="mirror" class="sec">
-    <h2 class="sec-title">「经济学家预测世界杯全对」？照妖镜 <span class="sec-sub">名人预测的真相与可借鉴之处</span></h2>
-    <p class="sec-lead" id="mirror-lesson"></p>
-    <div id="mirror-grid" class="mirror-grid"></div>
-    <div class="card crosscheck" id="crosscheck"></div>
-  </section>
-</main>
+  <main id="main"></main>
+</div>
 
 <footer class="foot">
-  <div>2026 世界杯预测引擎 · 数据：martj42 国际比赛史 · Transfermarkt · BetMGM/Oddschecker · 联网核对</div>
-  <div class="dim" id="foot-asof"></div>
-  <div class="dim">模型已知局限：点球大战按 50/50；国家队样本稀疏，单场预测上限有限——看概率校准，别看单场命中。</div>
+  <div id="foot-line">世界杯概率预测引擎 · martj42 国际比赛史 · Transfermarkt · the-odds-api 实时赔率 · FiveThirtyEight</div>
+  <div class="dim">模型已知局限：点球大战按 50/50；国家队样本稀疏，单场预测上限有限——看概率校准，别看单场命中。下注有风险，本页仅供研究/教育。</div>
 </footer>
 
 <script src="data.js"></script>

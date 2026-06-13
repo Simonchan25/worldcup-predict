@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from . import market
+
 FLAGS = {
     "Mexico": "🇲🇽", "South Africa": "🇿🇦", "South Korea": "🇰🇷", "Czech Republic": "🇨🇿",
     "Canada": "🇨🇦", "Bosnia and Herzegovina": "🇧🇦", "Qatar": "🇶🇦", "Switzerland": "🇨🇭",
@@ -112,6 +114,70 @@ def match_factors(fx: dict, values: dict, form_h: list, form_a: list, mkt: dict 
     return {"factors": factors, "narrative": " ".join(bits), "diverge": diverge}
 
 
+def elo_trend(df: pd.DataFrame, teams: list[str], months: int = 16) -> dict:
+    """Each team's pre-match Elo at every match in the last `months` — a real
+    strength trajectory for the dashboard trend chart."""
+    cutoff = df["date"].max() - pd.Timedelta(days=30 * months)
+    sub = df[df["date"] >= cutoff]
+    out = {}
+    for t in teams:
+        tm = sub[(sub["home_team"] == t) | (sub["away_team"] == t)].sort_values("date")
+        rows = [{"date": str(pd.Timestamp(r.date).date()),
+                 "elo": round(float(r.elo_h if r.home_team == t else r.elo_a))}
+                for r in tm.itertuples(index=False)]
+        if rows:
+            out[t] = rows
+    return out
+
+
+def _devig2(o_over, o_under):
+    inv = [1.0 / o_over, 1.0 / o_under]
+    s = sum(inv)
+    return inv[0] / s, inv[1] / s
+
+
+def odds_compare(fx: dict, book: dict | None) -> list[dict]:
+    """Model fair odds vs the live bookmaker across 1X2 and totals 2.5.
+    edge = model_p × book_decimal − 1 (positive = model sees value)."""
+    if not book:
+        return []
+    rows = []
+    h2h = book.get("h2h") or {}
+    if all(h2h.get(k) for k in ("home", "draw", "away")):
+        imp = market.implied_1x2(h2h["home"], h2h["draw"], h2h["away"])
+        for key, lbl, mp, bi in (("home", "主胜", fx["p_home"], imp[0]),
+                                 ("draw", "平局", fx["p_draw"], imp[1]),
+                                 ("away", "客胜", fx["p_away"], imp[2])):
+            rows.append({"market": "胜平负", "sel": lbl, "model_p": round(mp, 4),
+                         "fair": round(1.0 / max(mp, 1e-6), 2), "book": h2h[key],
+                         "book_imp": round(float(bi), 4), "edge": round(mp * h2h[key] - 1, 3)})
+    tot = book.get("totals")
+    mk = fx.get("markets")
+    if tot and mk and tot.get("over") and tot.get("under"):
+        ou = mk["over_under"]["2.5"]
+        bi_o, bi_u = _devig2(tot["over"], tot["under"])
+        for sel, mp, bo, bi in (("大 2.5", ou["over"], tot["over"], bi_o),
+                                ("小 2.5", ou["under"], tot["under"], bi_u)):
+            rows.append({"market": "进球大小", "sel": sel, "model_p": round(mp, 4),
+                         "fair": round(1.0 / max(mp, 1e-6), 2), "book": bo,
+                         "book_imp": round(bi, 4), "edge": round(mp * bo - 1, 3)})
+    return rows
+
+
+def _score_breakdown(mk: dict) -> dict:
+    """Most likely scoreline overall + the top score for each result type."""
+    cs = mk.get("correct_score", []) if mk else []
+    def _parse(s):
+        a, _, b = s.partition("-"); return int(a), int(b)
+    best = {"home": None, "draw": None, "away": None}
+    for c in cs:
+        h, a = _parse(c["score"])
+        k = "home" if h > a else ("draw" if h == a else "away")
+        if best[k] is None or c["p"] > best[k]["p"]:
+            best[k] = c
+    return {"top": cs[:8], "by_result": best}
+
+
 def _top_scores_list(s: str) -> list[dict]:
     out = []
     for chunk in str(s).split("; "):
@@ -152,7 +218,8 @@ def _group_standings(groups, schedule):
 def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, values,
                  fixtures, live, adv, market_outright, fixtures_market, fit, blend_info,
                  bt_summary, calibration, calibration_ece, market_beat, sources,
-                 betting_backtest=None, value_bets=None, injuries=None, methodology=None):
+                 betting_backtest=None, value_bets=None, injuries=None, methodology=None,
+                 live_odds=None):
     advm = {r["team"]: r for r in adv.to_dict("records")}
     mkt_map = {}
     if market_outright is not None:
@@ -195,6 +262,11 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             forms[t] = recent_form(df, t, asof)
         return forms[t]
 
+    live_map = {}
+    if live_odds:
+        for m in live_odds.get("matches", []):
+            live_map[(m["home"], m["away"])] = m
+
     fixtures_out = []
     for fx in fixtures.to_dict("records"):
         H, A = fx["home"], fx["away"]
@@ -213,7 +285,28 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             "form_h": form(H), "form_a": form(A),
             "factors": meta["factors"], "narrative": meta["narrative"], "diverge": meta["diverge"],
             "markets": fx.get("markets"),
+            "odds_compare": odds_compare({**fx, "p_home": fx["p_home"], "p_draw": fx["p_draw"],
+                                          "p_away": fx["p_away"]}, live_map.get((H, A))),
+            "score_breakdown": _score_breakdown(fx.get("markets")),
         })
+
+    # best picks — model's most confident calls, ranked by max outcome prob
+    best_picks = []
+    for fo in fixtures_out:
+        probs = {"主胜": fo["p_home"], "平局": fo["p_draw"], "客胜": fo["p_away"]}
+        sel = max(probs, key=probs.get)
+        sb = fo.get("score_breakdown") or {}
+        topcs = (sb.get("top") or [{}])[0]
+        edges = [r["edge"] for r in fo.get("odds_compare", [])]
+        best_picks.append({
+            "date": fo["date"], "home": fo["home"], "away": fo["away"], "stage": fo["stage"],
+            "group": fo.get("group"), "flagH": fo["flagH"], "flagA": fo["flagA"],
+            "pick": sel, "pick_p": probs[sel], "p_home": fo["p_home"], "p_draw": fo["p_draw"],
+            "p_away": fo["p_away"], "score": topcs.get("score", ""), "score_p": topcs.get("p", 0),
+            "lambda_h": fo["lambda_h"], "lambda_a": fo["lambda_a"],
+            "narrative": fo["narrative"], "best_edge": max(edges) if edges else None,
+        })
+    best_picks.sort(key=lambda x: -x["pick_p"])
 
     live_out = []
     if live is not None and len(live):
@@ -259,6 +352,12 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "live": live_out,
         "credibility": credibility,
         "betting": {"value_bets": value_bets or [], "backtest": betting_backtest},
+        "best_picks": best_picks,
+        "elo_trend": {"teams": [t["team"] for t in leaderboard[:6]],
+                      "flags": {t["team"]: t["flag"] for t in leaderboard[:6]},
+                      "series": elo_trend(df, [t["team"] for t in leaderboard[:6]])},
         "injuries": inj,
         "methodology": methodology,
+        "live_odds": ({"asof": live_odds.get("asof"), "source": live_odds.get("source"),
+                       "remaining": live_odds.get("requests_remaining")} if live_odds else None),
     }

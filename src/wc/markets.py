@@ -98,7 +98,9 @@ def all_markets(m: np.ndarray) -> dict:
         "ah": {"-1.5": asian_handicap(m, -1.5), "-0.5": asian_handicap(m, -0.5),
                "+0.5": asian_handicap(m, 0.5), "+1.5": asian_handicap(m, 1.5)},
         "team_totals": team_totals(m),
-        "correct_score": correct_score(m, 6),
+        "correct_score": correct_score(m, 8),
+        "grid": [[round(float(m[i, j]), 4) for j in range(min(6, m.shape[1]))]
+                 for i in range(min(6, m.shape[0]))],
     }
 
 
