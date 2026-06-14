@@ -1,18 +1,24 @@
 /* Clean dark, flat — one accent (emerald), subtle borders, generous whitespace */
 :root{
-  --bg:#0e0f13; --panel:#16181d; --panel2:#1b1e25; --soft:#1f232b;
-  --line:#23262e; --line2:#30343d;
-  --tx:#e7e9ee; --mut:#8b919e; --dim:#5e6573;
-  --acc:#10b981; --acc-soft:rgba(16,185,129,.12);
-  --win:#10b981; --draw:#646b78; --loss:#e0696f;
-  --pos:#10b981; --neg:#e0696f; --warn:#d9a441;
+  /* soft, slightly-warm dark (not pure black) + a teal-emerald primary and an
+     amber secondary for warmth/variety — see styles_note in repo */
+  --bg:#12131b; --panel:#1b1d28; --panel2:#232636; --soft:#2b2f40;
+  --line:#2c3040; --line2:#3c4255;
+  --tx:#eef0f6; --mut:#a4abbb; --dim:#737b8e;
+  --acc:#1fc398; --acc-soft:rgba(31,195,152,.14);
+  --acc2:#f6a93c; --acc2-soft:rgba(246,169,60,.15);
+  --win:#1fc398; --draw:#7b8398; --loss:#f0707b;
+  --pos:#1fc398; --neg:#f0707b; --warn:#f6a93c;
   --tb:58px; --sb:222px; --maxw:1440px; --r:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
   background:var(--bg);color:var(--tx);line-height:1.55;-webkit-font-smoothing:antialiased;font-size:14px}
-#bg-grad{display:none}
+#bg-grad{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(1000px 560px at 86% -10%, rgba(31,195,152,.11), transparent 62%),
+    radial-gradient(880px 520px at -5% 110%, rgba(246,169,60,.08), transparent 60%);}
 .dim{color:var(--dim)} b{font-weight:600}
 ::-webkit-scrollbar{width:9px;height:9px} ::-webkit-scrollbar-thumb{background:#262a33;border-radius:6px} ::-webkit-scrollbar-track{background:transparent}
 
@@ -63,7 +69,7 @@ main{flex:1;min-width:0;padding:24px 26px 48px}
 .banner b{color:var(--tx)}
 
 /* hero */
-.hero{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:26px 28px;margin-bottom:16px}
+.hero{border:1px solid var(--line);background:linear-gradient(120deg,rgba(31,195,152,.12),rgba(246,169,60,.07) 60%,transparent),var(--panel);border-radius:var(--r);padding:26px 28px;margin-bottom:16px}
 .hero .tag{font-size:11px;letter-spacing:.14em;color:var(--acc);font-weight:600;text-transform:uppercase}
 .hero h1{font-size:clamp(24px,3.4vw,34px);font-weight:750;letter-spacing:-.02em;margin:8px 0}
 .hero p{color:var(--mut);font-size:14px;max-width:680px}

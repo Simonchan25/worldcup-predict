@@ -86,9 +86,9 @@
   "venue_city": "East Rutherford",
   "venue_country": "United States",
   "n": 7,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -99,9 +99,9 @@
   "venue_city": "Santa Clara",
   "venue_country": "United States",
   "n": 8,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 1
  },
  {
   "stage": "group",
