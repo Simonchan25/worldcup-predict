@@ -648,7 +648,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
                  bt_summary, calibration, calibration_ece, market_beat, sources,
                  betting_backtest=None, value_bets=None, injuries=None, methodology=None,
                  live_odds=None, all_fixtures=None, referees=None, squads=None,
-                 ai_panel=None, venues=None, bracket=None):
+                 ai_panel=None, ai_takes=None, venues=None, bracket=None):
     advm = {r["team"]: r for r in adv.to_dict("records")}
     mkt_map = {}
     if market_outright is not None:
@@ -702,6 +702,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
 
     inj_map = (injuries or {}).get("by_team", {}) if isinstance(injuries, dict) else {}
     squad_map = (squads or {}).get("by_team", {}) if isinstance(squads, dict) else {}
+    take_map = (ai_takes or {}).get("by_n", {}) if isinstance(ai_takes, dict) else {}
     tr_map = _travel_rest(schedule, venues)
 
     def _stars(team):
@@ -773,6 +774,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             "referee": (referees or {}).get("by_match", {}).get(f"{H}|{A}"),
             "climate": fx.get("climate"), "venue_city": fx.get("venue_city"),
             "star_matchup": {"home": sh, "away": sa}, "storyline": _storyline(H, A, sh, sa),
+            "take": take_map.get(str(fx.get("n"))),
         }
 
     fixtures_out = [enrich(fx) for fx in fixtures.to_dict("records")]

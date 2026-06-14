@@ -361,6 +361,33 @@ main{flex:1;min-width:0;padding:24px 26px 48px}
 .confetti-layer i{position:fixed;width:8px;height:13px;border-radius:2px;opacity:0;transform:translate(-50%,-50%);animation:confpop 1.45s cubic-bezier(.2,.6,.3,1) forwards}
 @keyframes confpop{0%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 320px)) rotate(var(--rot))}}
 
+/* toolbar toggle buttons */
+.chip.btn{cursor:pointer;font-family:inherit}
+.chip.btn:hover{color:var(--tx);border-color:var(--line2)}
+.chip.btn.on{color:var(--acc2);border-color:rgba(246,169,60,.45);background:var(--acc2-soft)}
+
+/* AI 解说 · 吐槽辩论 */
+.take-hot{font-size:13px;color:var(--tx);background:var(--acc2-soft);border-left:3px solid var(--acc2);border-radius:8px;padding:9px 12px;line-height:1.6;font-weight:550}
+.take-banter{display:flex;flex-direction:column;gap:7px;margin:10px 0}
+.bant{display:flex;gap:9px;font-size:12.5px;align-items:flex-start}
+.bant-s{flex-shrink:0;font-weight:700;color:var(--acc);min-width:64px}
+.bant-l{color:#cfd4dd;line-height:1.5}
+.take-verdict{font-size:12.5px;color:var(--mut);font-style:italic}
+.fun-only{display:none} body.fun .fun-only{display:block}
+
+/* team-colour strip on match cards */
+.mc{position:relative}
+.mc-strip{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+
+/* light theme */
+body.light{--bg:#f5f7fa;--panel:#ffffff;--panel2:#eef2f7;--soft:#e6ebf2;--line:#e3e7ee;--line2:#d2d9e2;
+  --tx:#1b1f27;--mut:#5b6473;--dim:#8a93a2;--acc:#0e9f78;--acc-soft:rgba(14,159,120,.13);
+  --acc2:#dd8a1d;--acc2-soft:rgba(221,138,29,.15);--win:#0e9f78;--draw:#98a1b1;--loss:#e0566a;--pos:#0e9f78;--neg:#e0566a;--warn:#dd8a1d}
+body.light .narr,body.light .pick-an,body.light .pp-rat,body.light .bant-l{color:#374151}
+body.light .topbar{background:rgba(255,255,255,.9)}
+body.light #bg-grad{background:radial-gradient(1000px 560px at 86% -10%,rgba(14,159,120,.10),transparent 62%),radial-gradient(880px 520px at -5% 110%,rgba(221,138,29,.08),transparent 60%)}
+body.light .wdl{background:#e6ebf2}
+
 /* clickable matches + detail modal */
 .clickable{cursor:pointer;transition:border-color .13s}
 .mc.clickable:hover,.srow.clickable:hover,.rmatch.clickable:hover,.lc.clickable:hover{border-color:var(--acc)}

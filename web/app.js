@@ -23,6 +23,14 @@
   const byTime = (a, b) => (a.date || "").localeCompare(b.date || "") || koKey(a).localeCompare(koKey(b)) || ((a.n || 0) - (b.n || 0));
   const INJ = D.injuries || {};
   const PAL = ["#10b981", "#3b82f6", "#a78bfa", "#f472b6", "#fbbf24", "#22d3ee"];
+  // national-colour accent per team (curated majors + deterministic hue fallback)
+  const TEAMCOLOR = { Spain: "#e23b4e", Argentina: "#6cace4", France: "#2b4a9b", England: "#e0405a",
+    Brazil: "#f7d417", Portugal: "#d12e3e", Netherlands: "#f56a00", Germany: "#d4af37",
+    Belgium: "#e6b800", Croatia: "#e2433f", Norway: "#cf2e3a", Mexico: "#1a8a4a",
+    "United States": "#3b5bd0", Morocco: "#c1272d", Japan: "#d6002e", "South Korea": "#0b50c8",
+    Uruguay: "#5aa9e6", Colombia: "#fcd116", Senegal: "#1f9e4a", Switzerland: "#e02b1e",
+    Canada: "#e23b3b", Australia: "#f5c518", Ecuador: "#ffcf2e" };
+  const tcolor = t => { if (TEAMCOLOR[t]) return TEAMCOLOR[t]; let h = 0; for (const c of String(t)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return `hsl(${h % 360} 60% 56%)`; };
 
   const NAV = [
     ["home", "🏠", "首页"], ["schedule", "📅", "赛程"], ["bracket", "🗺️", "晋级树"],
@@ -91,6 +99,7 @@
       return `<div class="inj"><span class="ic">🩹</span><span>${fl} ${esc(t)}：${it.slice(0, 3).map(x => esc(x.player) + (x.status && x.status !== "out" ? `(${esc(x.status)})` : "")).join("、")}${it.length > 3 ? " 等" : ""}</span></div>`; };
     const badge = fx.stage === "group" ? "组 " + fx.group : String(fx.stage).toUpperCase();
     return `<div class="mc clickable" data-match-n="${fx.n}">
+      <div class="mc-strip" style="background:linear-gradient(90deg,${tcolor(fx.home)} 0 50%,${tcolor(fx.away)} 50% 100%)"></div>
       <div class="mc-head"><span class="badge">${esc(badge)}</span><span class="mc-date">${fx.kickoff ? "🕒 " + esc(koTime(fx.kickoff)) : esc(fx.date)}</span></div>
       <div class="mc-teams">
         <div class="mc-team home"><span class="fn">${fx.flagH} ${esc(fx.home)}</span><span class="elo">Elo ${fx.elo_h} ${formDots(fx.form_h)}</span></div>
@@ -101,6 +110,7 @@
       <div class="wdl-leg"><span>胜 <b>${pct(ph)}</b></span><span>平 <b>${pct(pdr)}</b></span><span>负 <b>${pct(pa)}</b></span></div>
       <div class="scorelines">${sl}</div>
       <div class="narr">${bold(fx.narrative)}</div>
+      ${fx.take ? `<div class="take-hot fun-only">🎤 ${esc(fx.take.hot_take)}</div>` : ""}
       <div class="factors">${facs}</div>
       ${evList(fx)}
       ${mkts}${climLine(fx)}${refLine(fx.referee)}${injLine(fx.home, fx.flagH)}${injLine(fx.away, fx.flagA)}</div>`;
@@ -466,6 +476,15 @@
       <div class="persona-grid">${cards}</div></section>`;
   }
 
+  function takeBlock(fx) {
+    const t = fx.take; if (!t) return "";
+    const banter = (t.banter || []).map(b => `<div class="bant"><span class="bant-s">${esc(b.side)}</span><span class="bant-l">${esc(b.line)}</span></div>`).join("");
+    return `<div class="mm-sec">🎤 AI 解说 · 吐槽辩论</div>
+      <div class="take-hot">${esc(t.hot_take)}</div>
+      <div class="take-banter">${banter}</div>
+      <div class="take-verdict">🧐 ${esc(t.verdict)}</div>`;
+  }
+
   /* ---------- match detail modal (click any match) ---------- */
   const fixturesByN = {}; (D.fixtures || []).forEach(f => { fixturesByN[f.n] = f; });
   const schedByN = {}; (D.schedule_full || []).forEach(m => { schedByN[m.n] = m; });
@@ -476,7 +495,7 @@
     const actual = sm && sm.actual
       ? `<div class="mm-actual">本场已结束 · 实际比分 <b>${esc(sm.actual)}</b>${sm.pred_hit != null ? ` · 模型方向 <span class="${sm.pred_hit ? "hit-y" : "hit-n"}">${sm.pred_hit ? "✓ 命中" : "✗ 未中"}</span>` : ""}</div>`
       : (fx.kickoff ? `<div class="mm-actual dim">开球 🕒 ${esc(koTime(fx.kickoff))}（你所在时区）</div>` : "");
-    $("#mm-body").innerHTML = actual + matchCard(fx) + starSection(fx)
+    $("#mm-body").innerHTML = actual + matchCard(fx) + takeBlock(fx) + starSection(fx)
       + `<div class="mm-sec">💰 赔率与买入 · 本场最优玩法</div><div class="sb-grid">${betSmartCard(fx)}</div>`;
     const mod = $("#match-modal"); mod.classList.add("open"); $("#mm-body").scrollTop = 0;
     document.body.style.overflow = "hidden";
@@ -530,6 +549,12 @@
     });
     window.addEventListener("keydown", e => { if (e.key === "Escape") closeMatch(); });
     window.addEventListener("hashchange", () => { closeMatch(); setView(location.hash.slice(1)); });
+    // theme (light/dark) + 娱乐模式 toggles, persisted
+    const themeBtn = $("#theme-btn"), funBtn = $("#fun-btn");
+    if (localStorage.getItem("theme") === "light") document.body.classList.add("light");
+    if (localStorage.getItem("fun") === "1") { document.body.classList.add("fun"); funBtn && funBtn.classList.add("on"); }
+    themeBtn && (themeBtn.onclick = () => { const l = document.body.classList.toggle("light"); localStorage.setItem("theme", l ? "light" : "dark"); });
+    funBtn && (funBtn.onclick = () => { const on = document.body.classList.toggle("fun"); funBtn.classList.toggle("on", on); localStorage.setItem("fun", on ? "1" : "0"); });
     setView(location.hash.slice(1) || "home");
   }
   init();

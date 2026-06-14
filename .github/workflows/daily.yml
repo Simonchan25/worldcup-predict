@@ -1,0 +1,51 @@
+name: Daily refresh (cloud)
+
+# Pulls latest results + kickoff times from ESPN, refreshes martj42 history,
+# re-runs the pipeline, and commits the updated data — which triggers the Pages
+# deploy. Runs in the cloud, so the live site stays current without your machine.
+on:
+  schedule:
+    - cron: "0 13 * * *"   # 13:00 UTC daily (after a day's matches)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Refresh martj42 international results
+        run: curl -fsS --max-time 90 "https://raw.githubusercontent.com/martj42/international_results/master/results.csv" -o data/raw/results.csv || echo "martj42 download failed — keeping existing"
+      - name: Fetch WC results + kickoff times (ESPN)
+        run: python scripts/fetch_results.py || echo "results fetch failed"
+      - name: Fetch live odds (only if the-odds-api key secret is set)
+        env:
+          ODDS_KEY: ${{ secrets.THE_ODDS_API_KEY }}
+        run: |
+          if [ -n "$ODDS_KEY" ]; then
+            printf '{"the_odds_api_key":"%s"}' "$ODDS_KEY" > .secrets.local.json
+            python scripts/fetch_live_odds.py || echo "odds fetch failed"
+            rm -f .secrets.local.json
+          else
+            echo "no THE_ODDS_API_KEY secret — using committed odds"
+          fi
+      - name: Run pipeline
+        run: python scripts/run_pipeline.py --sims 50000
+      - name: Commit refreshed data
+        run: |
+          rm -f .secrets.local.json
+          git config user.name "wc-refresh-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/wc2026 data/raw/results.csv web/data.js outputs
+          git commit -m "Daily auto-refresh $(date -u +%F)" || { echo "no changes"; exit 0; }
+          git push

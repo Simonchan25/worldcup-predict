@@ -242,6 +242,8 @@ def main():
               if (data.WC / "squads.json").exists() else None)
     ai_panel = (json.loads((data.WC / "ai_panel.json").read_text(encoding="utf-8"))
                 if (data.WC / "ai_panel.json").exists() else None)
+    ai_takes = (json.loads((data.WC / "ai_takes.json").read_text(encoding="utf-8"))
+                if (data.WC / "ai_takes.json").exists() else None)
     ctx = {
         "asof": str(today.date()),
         "n_sims": args.sims,
@@ -292,7 +294,7 @@ def main():
         market_beat=market_beat, betting_backtest=betting_bt, value_bets=value_bets,
         injuries=injuries, methodology=methodology, live_odds=live_odds,
         all_fixtures=all_pred, referees=referees, squads=squads, ai_panel=ai_panel,
-        venues=(clim.venues if clim else None), bracket=bracket, sources=sources)
+        ai_takes=ai_takes, venues=(clim.venues if clim else None), bracket=bracket, sources=sources)
     web_dir = data.ROOT / "web"
     web_dir.mkdir(exist_ok=True)
     (web_dir / "data.js").write_text(
