@@ -60,9 +60,9 @@
   "venue_city": "Foxborough",
   "venue_country": "United States",
   "n": 5,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -73,9 +73,9 @@
   "venue_city": "Vancouver",
   "venue_country": "Canada",
   "n": 6,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 2,
+  "away_score": 0
  },
  {
   "stage": "group",
