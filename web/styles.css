@@ -354,7 +354,12 @@ main{flex:1;min-width:0;padding:24px 26px 48px}
 .bk-sc{font-size:10px;color:var(--dim);text-align:center;padding:2px 0;background:var(--panel2);border-top:1px solid var(--line)}
 .bk-champ-col{min-width:150px}
 .bk-champ{background:linear-gradient(180deg,var(--acc-soft),transparent);border:1px solid rgba(16,185,129,.32);border-radius:10px;padding:16px 12px;text-align:center;font-size:24px}
+.bk-champ{cursor:pointer} .bk-champ:hover{filter:brightness(1.08)}
 .bk-champ .bc-fl{font-size:30px;margin:4px 0} .bk-champ .bc-nm{font-size:15px;font-weight:750;color:var(--tx)}
+/* confetti champion celebration */
+.confetti-layer{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden}
+.confetti-layer i{position:fixed;width:8px;height:13px;border-radius:2px;opacity:0;transform:translate(-50%,-50%);animation:confpop 1.45s cubic-bezier(.2,.6,.3,1) forwards}
+@keyframes confpop{0%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 320px)) rotate(var(--rot))}}
 
 /* clickable matches + detail modal */
 .clickable{cursor:pointer;transition:border-color .13s}

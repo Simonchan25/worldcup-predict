@@ -483,6 +483,26 @@
   }
   function closeMatch() { $("#match-modal").classList.remove("open"); document.body.style.overflow = ""; }
 
+  /* ---------- confetti (champion celebration) ---------- */
+  function confetti(el) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const colors = ["#1fc398", "#f6a93c", "#3b82f6", "#f472b6", "#fbbf24", "#22d3ee", "#fff"];
+    const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, top: 140, width: 0, height: 0 };
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const wrap = document.createElement("div"); wrap.className = "confetti-layer";
+    for (let i = 0; i < 90; i++) {
+      const p = document.createElement("i");
+      const a = Math.random() * Math.PI * 2, v = 100 + Math.random() * 240;
+      p.style.cssText = `left:${cx}px;top:${cy}px;background:${colors[i % colors.length]};`
+        + `--dx:${Math.cos(a) * v}px;--dy:${Math.sin(a) * v - 140}px;--rot:${Math.random() * 720 - 360}deg;`
+        + `animation-delay:${Math.random() * 80}ms`;
+      wrap.appendChild(p);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(() => wrap.remove(), 1700);
+  }
+  let _confettiDone = false;
+
   /* ---------- router ---------- */
   const POST = { home: homePost, matches: matchesPost, bet: betPost, analytics: analyticsPost };
   function setView(id) {
@@ -490,6 +510,10 @@
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + id));
     document.querySelectorAll("[data-v]").forEach(a => a.classList.toggle("active", a.dataset.v === id));
     window.scrollTo(0, 0);
+    if (id === "bracket" && !_confettiDone) {
+      _confettiDone = true;
+      setTimeout(() => confetti(document.querySelector("#view-bracket .bk-champ")), 250);
+    }
   }
   function init() {
     chrome();
@@ -500,6 +524,7 @@
     document.addEventListener("click", e => {
       const g = e.target.closest("[data-go]"); if (g) { location.hash = g.dataset.go; return; }
       if (e.target.closest(".mm-x, .mm-back")) { closeMatch(); return; }
+      const champ = e.target.closest(".bk-champ"); if (champ) { confetti(champ); return; }
       const mn = e.target.closest("[data-match-n]");
       if (mn && !e.target.closest("button, a, summary, .add-leg, .more")) openMatch(+mn.dataset.matchN);
     });
