@@ -9,6 +9,7 @@ short prose narrative. Nothing here is hand-waved; every sentence is computed.
 """
 from __future__ import annotations
 
+import math
 import re
 
 import numpy as np
@@ -84,6 +85,37 @@ def head_to_head(df: pd.DataFrame, A: str, B: str, asof, n: int = 6) -> dict | N
             "gf_a": int(gfa), "gf_b": int(gfb), "last": last,
             "recent_a": ra, "recent_b": rb, "recent_n": len(recent),
             "recent": list(reversed(recent))}
+
+
+def _travel_rest(schedule, venues) -> dict:
+    """Per-match rest days + travel km for each side, derived from each team's
+    previous fixture and venue coordinates — a fatigue/adaptation colour layer
+    for 2026's continental spread. {match n: {home/away: {rest, km}}}."""
+    if not venues:
+        return {}
+
+    def hav(a, b):
+        if not a or not b or "lat" not in a or "lat" not in b:
+            return None
+        la1, lo1, la2, lo2 = map(math.radians, [a["lat"], a["lon"], b["lat"], b["lon"]])
+        h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+        return int(2 * 6371 * math.asin(math.sqrt(h)))
+
+    by_team = {}
+    for m in sorted([x for x in schedule if x.get("date")], key=lambda x: (x["date"], x.get("n", 0))):
+        for t in (m.get("home"), m.get("away")):
+            by_team.setdefault(t, []).append(m)
+    out = {}
+    for t, ms in by_team.items():
+        prev = None
+        for m in ms:
+            info = {"rest": None, "km": None}
+            if prev:
+                info["rest"] = (pd.Timestamp(m["date"]) - pd.Timestamp(prev["date"])).days
+                info["km"] = hav(venues.get(prev.get("venue_city")), venues.get(m.get("venue_city")))
+            out.setdefault(m.get("n"), {})["home" if m.get("home") == t else "away"] = info
+            prev = m
+    return out
 
 
 def match_factors(fx: dict, values: dict, form_h: list, form_a: list, mkt: dict | None,
@@ -615,7 +647,8 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
                  fixtures, live, adv, market_outright, fixtures_market, fit, blend_info,
                  bt_summary, calibration, calibration_ece, market_beat, sources,
                  betting_backtest=None, value_bets=None, injuries=None, methodology=None,
-                 live_odds=None, all_fixtures=None, referees=None, squads=None, bracket=None):
+                 live_odds=None, all_fixtures=None, referees=None, squads=None,
+                 ai_panel=None, venues=None, bracket=None):
     advm = {r["team"]: r for r in adv.to_dict("records")}
     mkt_map = {}
     if market_outright is not None:
@@ -669,6 +702,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
 
     inj_map = (injuries or {}).get("by_team", {}) if isinstance(injuries, dict) else {}
     squad_map = (squads or {}).get("by_team", {}) if isinstance(squads, dict) else {}
+    tr_map = _travel_rest(schedule, venues)
 
     def _stars(team):
         inj_names = [i.get("player") or "" for i in (inj_map.get(team) or [])]
@@ -707,6 +741,17 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         if sh and sa:
             meta.setdefault("evidence", []).append({"k": "squad", "t":
                 f"领衔球星：{H} {sh[0]['name']}（{sh[0]['tag']}）· {A} {sa[0]['name']}（{sa[0]['tag']}）"})
+        tr = tr_map.get(fx.get("n"), {})
+        for side, team in (("home", H), ("away", A)):
+            d = tr.get(side) or {}
+            flags = []
+            if d.get("rest") is not None and d["rest"] <= 3:
+                flags.append(f"仅休 {d['rest']} 天")
+            if d.get("km") and d["km"] >= 2500:
+                flags.append(f"长途 {d['km']} km")
+            if flags:
+                meta.setdefault("evidence", []).append({"k": "travel", "t":
+                    f"体能/行程：{team} {' · '.join(flags)}（短歇/长途不利）"})
         return {
             "n": fx.get("n"), "date": fx["date"],
             "kickoff": fx.get("kickoff") if isinstance(fx.get("kickoff"), str) else None,
@@ -820,6 +865,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
         "betting": {"value_bets": value_bets or [], "backtest": betting_backtest,
                     "recommendations": build_recommendations(value_bets)},
         "schedule_full": build_schedule(schedule, all_fixtures),
+        "ai_panel": ai_panel,
         "referees": referees or {},
         "best_picks": best_picks,
         "elo_trend": {"teams": [t["team"] for t in leaderboard[:6]],

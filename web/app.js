@@ -28,6 +28,7 @@
     ["home", "🏠", "首页"], ["schedule", "📅", "赛程"], ["bracket", "🗺️", "晋级树"],
     ["matches", "⚽", "比赛预测"], ["score", "🎯", "比分预测"], ["picks", "⭐", "最佳选择"],
     ["bet", "💰", "赔率与买入"], ["groups", "📊", "小组"], ["analytics", "🔬", "数据分析"],
+    ["panel", "🤖", "AI论战"],
   ];
   const upcoming = () => D.fixtures.slice().sort(byTime);
 
@@ -48,7 +49,7 @@
     const stats = [r.y != null ? `黄 ${r.y}` : "", r.pen != null ? `点球 ${r.pen}/场` : ""].filter(Boolean).join(" · ");
     return `<div class="ref-line"><span class="ic">🧑‍⚖️</span><span>主裁 <b>${esc(r.referee)}</b>（${esc(r.nat || "")}）${stats ? "· " + stats : ""}${r.style ? "<br><span class='dim'>" + esc(r.style.slice(0, 90)) + "</span>" : ""}</span></div>`;
   }
-  const EVICON = { h2h: "🆚", h2h_last: "🕐", form: "📈", goals: "⚽", elo: "🎯", value: "💰", inj: "🩹", climate: "🌡️", market: "💱", squad: "🌟" };
+  const EVICON = { h2h: "🆚", h2h_last: "🕐", form: "📈", goals: "⚽", elo: "🎯", value: "💰", inj: "🩹", climate: "🌡️", market: "💱", squad: "🌟", travel: "✈️" };
   function starSection(fx) {
     const sm = fx.star_matchup || {}, sh = sm.home || [], sa = sm.away || [];
     if (!sh.length && !sa.length) return "";
@@ -424,6 +425,47 @@
     $("#cal-svg").innerHTML = `<line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="#3a4150" stroke-dasharray="4 4"/><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#2a2e37"/><line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#2a2e37"/>${pts}<text x="${W / 2}" y="${H - 4}" fill="#5e6573" font-size="10" text-anchor="middle">模型预测概率 →</text>`;
   }
 
+  /* ---------- AI 论战 (multi-agent analyst panel) ---------- */
+  function panelHTML() {
+    const ap = D.ai_panel;
+    if (!ap || !ap.panel) return `<section class="view" id="view-panel"><div class="vhead"><h1>🤖 AI 论战</h1></div><p class="dim">暂无 AI 面板数据。</p></section>`;
+    const flagOf = {}; (D.leaderboard || []).forEach(t => flagOf[t.team] = t.flag);
+    const fl = t => flagOf[t] || "";
+    const con = ap.consensus || {};
+    const myTop = [...(D.leaderboard || [])].sort((a, b) => b.p_champion - a.p_champion)[0] || {};
+    const votes = {}; ap.panel.forEach(p => { const c = p.forecast && p.forecast.champion; if (c) votes[c] = (votes[c] || 0) + 1; });
+    const voteStr = Object.entries(votes).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${esc(t)} ${n}`).join(" / ");
+    const cards = ap.panel.map(p => {
+      const f = p.forecast || {}, d = p.debate || {};
+      const top4 = (f.top4 || []).map(t => `<span class="pp-team">${fl(t)} ${esc(t)}</span>`).join("");
+      return `<div class="persona">
+        <div class="pp-name">${esc(p.name)}</div>
+        <div class="pp-pick"><span class="pp-champ">🏆 ${fl(f.champion)} <b>${esc(f.champion)}</b></span></div>
+        <div class="pp-sub">亚军 ${fl(f.runner_up)} ${esc(f.runner_up)} · 黑马 ${fl(f.dark_horse)} ${esc(f.dark_horse)}</div>
+        <div class="pp-top4">四强 ${top4}</div>
+        <div class="pp-rat">${esc(f.rationale)}</div>
+        <div class="pp-deb">💬 ${esc(d.defense)}<div class="pp-reb">↩ 怼「${esc(d.target)}」：${esc(d.rebuttal)}</div></div>
+      </div>`;
+    }).join("");
+    const converge = con.champion === myTop.team;
+    return `<section class="view" id="view-panel"><div class="vhead"><h1>🤖 AI 论战 · 大模型预测</h1>
+      <span class="sub">5 个 AI 分析师 persona（数据/状态/球星/市场/黑马）独立预测 → 互相辩论 → 主持人综合。多智能体 workflow 生成，<b>不调用外部 LLM API</b>。这就是「问大模型预测世界杯」的本质——看它们的共识与分歧。</span></div>
+      <div class="banner">${esc(ap.note || "")}${ap.asof ? " · 生成于 " + esc(ap.asof) : ""}</div>
+      <div class="panel sec-block"><div class="p-title">AI 面板共识 vs 本统计模型</div>
+        <div class="vs-grid">
+          <div class="vs-box"><div class="vs-champ">${fl(con.champion)} ${esc(con.champion)}</div><div class="vs-k">🤖 AI 面板共识（${esc(voteStr)}）</div></div>
+          <div class="vs-mid">VS</div>
+          <div class="vs-box"><div class="vs-champ">${myTop.flag || ""} ${esc(myTop.team)}</div><div class="vs-k">⚙️ 本模型冠军（${pct(myTop.p_champion)}）</div></div>
+        </div>
+        <div class="card-note">${converge ? "两条<b>相互独立</b>的路线指向同一冠军——<b>独立方法的趋同，比任何单一「神预测」更有信息量</b>。" : "AI 面板与统计模型给出不同冠军，是值得玩味的分歧点。"} 但要警惕：「问大模型」往往只是<b>复述训练数据里的共识</b>（所以它们大多说西班牙/法国）；真正的检验靠回测/校准，见「数据分析」。</div></div>
+      <div class="panel sec-block"><div class="p-title">主持人综合</div>
+        <div class="cons-line"><b>一致度：</b>${esc(con.agreement)}</div>
+        <div class="cons-line"><b>最大分歧：</b>${esc(con.biggest_disagreement)}</div>
+        <div class="cons-line"><b>综合四强：</b>${(con.top4 || []).map(t => fl(t) + " " + esc(t)).join(" · ")}</div>
+        <div class="card-note">${esc(con.summary)}</div></div>
+      <div class="persona-grid">${cards}</div></section>`;
+  }
+
   /* ---------- match detail modal (click any match) ---------- */
   const fixturesByN = {}; (D.fixtures || []).forEach(f => { fixturesByN[f.n] = f; });
   const schedByN = {}; (D.schedule_full || []).forEach(m => { schedByN[m.n] = m; });
@@ -451,7 +493,7 @@
   }
   function init() {
     chrome();
-    $("#main").innerHTML = [homeHTML(), scheduleHTML(), bracketHTML(), matchesHTML(), scoreHTML(), picksHTML(), betHTML(), groupsHTML(), analyticsHTML()].join("");
+    $("#main").innerHTML = [homeHTML(), scheduleHTML(), bracketHTML(), matchesHTML(), scoreHTML(), picksHTML(), betHTML(), groupsHTML(), analyticsHTML(), panelHTML()].join("");
     document.body.insertAdjacentHTML("beforeend",
       `<div id="match-modal" class="mmodal"><div class="mm-back"></div><div class="mm-card"><button class="mm-x" aria-label="关闭">✕</button><div id="mm-body"></div></div></div>`);
     Object.values(POST).forEach(f => { try { f(); } catch (e) { console.error(e); } });

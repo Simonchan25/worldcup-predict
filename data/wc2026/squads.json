@@ -1,95 +1,1102 @@
 {
-  "_note": "Key players per team for the star-matchup / storyline layer (entertainment + individual-quality comparison). val = approximate Transfermarkt-style market value in €M (estimate, rounds to ~10s; legends carry low value but high 'icon' weight). This is a display/colour layer — the model's probabilities already fold squad value in via value_blend; key players are cross-referenced against injuries.json so doubtful stars are flagged. Coverage is the contenders + currently-playing sides; extend freely.",
-  "by_team": {
-    "Spain": [
-      {"name": "Lamine Yamal", "pos": "RW", "club": "Barcelona", "val": 200, "tag": "金童·边路爆点"},
-      {"name": "Pedri", "pos": "CM", "club": "Barcelona", "val": 140, "tag": "中场节拍器"},
-      {"name": "Rodri", "pos": "DM", "club": "Man City", "val": 120, "tag": "金球级后腰"}
-    ],
-    "France": [
-      {"name": "Kylian Mbappé", "pos": "ST", "club": "Real Madrid", "val": 180, "tag": "头号杀手"},
-      {"name": "Aurélien Tchouaméni", "pos": "DM", "club": "Real Madrid", "val": 90, "tag": "中场屏障"},
-      {"name": "William Saliba", "pos": "CB", "club": "Arsenal", "val": 80, "tag": "防线核心"}
-    ],
-    "England": [
-      {"name": "Jude Bellingham", "pos": "AM", "club": "Real Madrid", "val": 180, "tag": "全能中场"},
-      {"name": "Bukayo Saka", "pos": "RW", "club": "Arsenal", "val": 130, "tag": "边路发动机"},
-      {"name": "Harry Kane", "pos": "ST", "club": "Bayern", "val": 90, "tag": "队长·射手"}
-    ],
-    "Brazil": [
-      {"name": "Vinícius Júnior", "pos": "LW", "club": "Real Madrid", "val": 200, "tag": "突破手"},
-      {"name": "Rodrygo", "pos": "RW", "club": "Real Madrid", "val": 100, "tag": "关键先生"},
-      {"name": "Raphinha", "pos": "RW", "club": "Barcelona", "val": 90, "tag": "状态火热"}
-    ],
-    "Argentina": [
-      {"name": "Lionel Messi", "pos": "RW", "club": "Inter Miami", "val": 30, "tag": "队魂·最后一舞"},
-      {"name": "Lautaro Martínez", "pos": "ST", "club": "Inter", "val": 110, "tag": "锋线杀手"},
-      {"name": "Julián Álvarez", "pos": "ST", "club": "Atlético", "val": 100, "tag": "全能前锋"}
-    ],
-    "Portugal": [
-      {"name": "Cristiano Ronaldo", "pos": "ST", "club": "Al-Nassr", "val": 15, "tag": "传奇·最后一舞"},
-      {"name": "Bruno Fernandes", "pos": "AM", "club": "Man Utd", "val": 60, "tag": "中场指挥"},
-      {"name": "Rafael Leão", "pos": "LW", "club": "AC Milan", "val": 80, "tag": "边路爆点"}
-    ],
-    "Netherlands": [
-      {"name": "Virgil van Dijk", "pos": "CB", "club": "Liverpool", "val": 25, "tag": "后防领袖"},
-      {"name": "Cody Gakpo", "pos": "LW", "club": "Liverpool", "val": 75, "tag": "锋线多面手"},
-      {"name": "Xavi Simons", "pos": "AM", "club": "RB Leipzig", "val": 80, "tag": "创造力核心"}
-    ],
-    "Germany": [
-      {"name": "Jamal Musiala", "pos": "AM", "club": "Bayern", "val": 140, "tag": "盘带魔术师"},
-      {"name": "Florian Wirtz", "pos": "AM", "club": "Liverpool", "val": 140, "tag": "进攻大脑"},
-      {"name": "Joshua Kimmich", "pos": "DM", "club": "Bayern", "val": 50, "tag": "中场枢纽"}
-    ],
-    "Belgium": [
-      {"name": "Kevin De Bruyne", "pos": "AM", "club": "Napoli", "val": 30, "tag": "传球大师"},
-      {"name": "Jérémy Doku", "pos": "LW", "club": "Man City", "val": 80, "tag": "爆点突破"},
-      {"name": "Romelu Lukaku", "pos": "ST", "club": "Napoli", "val": 25, "tag": "支点中锋"}
-    ],
-    "Croatia": [
-      {"name": "Luka Modrić", "pos": "CM", "club": "AC Milan", "val": 5, "tag": "传奇中场"},
-      {"name": "Joško Gvardiol", "pos": "CB", "club": "Man City", "val": 75, "tag": "现代中卫"},
-      {"name": "Mateo Kovačić", "pos": "CM", "club": "Man City", "val": 30, "tag": "中场节拍"}
-    ],
-    "Norway": [
-      {"name": "Erling Haaland", "pos": "ST", "club": "Man City", "val": 180, "tag": "进球机器"},
-      {"name": "Martin Ødegaard", "pos": "AM", "club": "Arsenal", "val": 110, "tag": "队长·组织核心"},
-      {"name": "Alexander Sørloth", "pos": "ST", "club": "Atlético", "val": 35, "tag": "第二射手"}
-    ],
-    "United States": [
-      {"name": "Christian Pulisic", "pos": "RW", "club": "AC Milan", "val": 60, "tag": "队长·东道主旗帜"},
-      {"name": "Folarin Balogun", "pos": "ST", "club": "Monaco", "val": 40, "tag": "锋线尖刀"},
-      {"name": "Weston McKennie", "pos": "CM", "club": "Juventus", "val": 30, "tag": "中场发动机"}
-    ],
-    "Mexico": [
-      {"name": "Santiago Giménez", "pos": "ST", "club": "AC Milan", "val": 35, "tag": "锋线尖刀"},
-      {"name": "Edson Álvarez", "pos": "DM", "club": "West Ham", "val": 30, "tag": "中场屏障"},
-      {"name": "Hirving Lozano", "pos": "RW", "club": "San Diego", "val": 15, "tag": "边路速度"}
-    ],
-    "Morocco": [
-      {"name": "Achraf Hakimi", "pos": "RB", "club": "PSG", "val": 60, "tag": "进攻型边卫"},
-      {"name": "Brahim Díaz", "pos": "AM", "club": "Real Madrid", "val": 60, "tag": "创造力"},
-      {"name": "Youssef En-Nesyri", "pos": "ST", "club": "Fenerbahçe", "val": 30, "tag": "支点中锋"}
-    ],
-    "Uruguay": [
-      {"name": "Federico Valverde", "pos": "CM", "club": "Real Madrid", "val": 130, "tag": "全能中场"},
-      {"name": "Darwin Núñez", "pos": "ST", "club": "Al-Hilal", "val": 65, "tag": "冲击型前锋"},
-      {"name": "Ronald Araújo", "pos": "CB", "club": "Barcelona", "val": 60, "tag": "后防核心"}
-    ],
-    "Japan": [
-      {"name": "Kaoru Mitoma", "pos": "LW", "club": "Brighton", "val": 50, "tag": "盘带边锋"},
-      {"name": "Takefusa Kubo", "pos": "RW", "club": "Real Sociedad", "val": 60, "tag": "技术核心"},
-      {"name": "Wataru Endō", "pos": "DM", "club": "Liverpool", "val": 15, "tag": "中场队长"}
-    ],
-    "Colombia": [
-      {"name": "Luis Díaz", "pos": "LW", "club": "Bayern", "val": 80, "tag": "边路爆点"},
-      {"name": "James Rodríguez", "pos": "AM", "club": "Club León", "val": 8, "tag": "队长·组织核心"},
-      {"name": "Jhon Durán", "pos": "ST", "club": "Al-Nassr", "val": 55, "tag": "冲击前锋"}
-    ],
-    "Switzerland": [
-      {"name": "Granit Xhaka", "pos": "CM", "club": "Bayer Leverkusen", "val": 25, "tag": "队长·中场核心"},
-      {"name": "Dan Ndoye", "pos": "RW", "club": "Nott'm Forest", "val": 40, "tag": "边路速度"},
-      {"name": "Manuel Akanji", "pos": "CB", "club": "Man City", "val": 40, "tag": "后防核心"}
-    ]
-  }
+ "_note": "核心球员（multi-agent 联网核实，2026-06-14；val=近似 Transfermarkt 身价 €M 估算；与最终大名单/伤停可能仍有出入）。展示/娱乐层，不改动已校准概率。",
+ "by_team": {
+  "Mexico": [
+   {
+    "name": "Santiago Gimenez",
+    "pos": "ST",
+    "club": "AC Milan",
+    "val": 18,
+    "tag": "锋线新星·进攻引擎"
+   },
+   {
+    "name": "Edson Alvarez",
+    "pos": "CM",
+    "club": "Fenerbahçe",
+    "val": 18,
+    "tag": "防线铁闸·中场大脑"
+   },
+   {
+    "name": "Raul Jimenez",
+    "pos": "ST",
+    "club": "Fulham",
+    "val": 3,
+    "tag": "老而弥坚·进攻支点"
+   }
+  ],
+  "South Africa": [
+   {
+    "name": "Teboho Mokoena",
+    "pos": "CM",
+    "club": "Mamelodi Sundowns",
+    "val": 3,
+    "tag": "中场铁闸·国家栋梁"
+   },
+   {
+    "name": "Ronwen Williams",
+    "pos": "GK",
+    "club": "Mamelodi Sundowns",
+    "val": 1,
+    "tag": "门神·队长荣耀"
+   },
+   {
+    "name": "Khuliso Mudau",
+    "pos": "RB",
+    "club": "Mamelodi Sundowns",
+    "val": 1,
+    "tag": "后卫多面手·防线定海针"
+   }
+  ],
+  "South Korea": [
+   {
+    "name": "Son Heung-min",
+    "pos": "LW",
+    "club": "Los Angeles FC",
+    "val": 17,
+    "tag": "队长·边锋天才"
+   },
+   {
+    "name": "Lee Kang-in",
+    "pos": "AM",
+    "club": "Paris Saint-Germain",
+    "val": 28,
+    "tag": "金童·创意核心"
+   },
+   {
+    "name": "Kim Min-jae",
+    "pos": "CB",
+    "club": "Bayern Munich",
+    "val": 20,
+    "tag": "后防铁闸·防线定海"
+   }
+  ],
+  "Czech Republic": [
+   {
+    "name": "Patrik Schick",
+    "pos": "ST",
+    "club": "Bayer Leverkusen",
+    "val": 20,
+    "tag": "禁区之王·头球大师"
+   },
+   {
+    "name": "Tomas Soucek",
+    "pos": "CM",
+    "club": "West Ham United",
+    "val": 12,
+    "tag": "中场铁血·队魂精神"
+   },
+   {
+    "name": "Ladislav Krejci",
+    "pos": "CB",
+    "club": "Wolverhampton",
+    "val": 6,
+    "tag": "防线铁闸·新任队长"
+   }
+  ],
+  "Canada": [
+   {
+    "name": "Alphonso Davies",
+    "pos": "LB",
+    "club": "Bayern Munich",
+    "val": 40,
+    "tag": "边路闪电·国家之光"
+   },
+   {
+    "name": "Jonathan David",
+    "pos": "ST",
+    "club": "Juventus",
+    "val": 30,
+    "tag": "禁区之王·进攻箭头"
+   },
+   {
+    "name": "Tajon Buchanan",
+    "pos": "CM",
+    "club": "Villarreal",
+    "val": 11,
+    "tag": "中场悍将·防线助力"
+   }
+  ],
+  "Bosnia and Herzegovina": [
+   {
+    "name": "Edin Dzeko",
+    "pos": "ST",
+    "club": "Schalke 04",
+    "val": 1,
+    "tag": "老而弥坚·传奇落幕"
+   },
+   {
+    "name": "Kerim Alajbegovic",
+    "pos": "LW",
+    "club": "Red Bull Salzburg",
+    "val": 13,
+    "tag": "天才新星·未来之光"
+   },
+   {
+    "name": "Esmir Bajraktarević",
+    "pos": "RW",
+    "club": "Salzburg",
+    "val": 5,
+    "tag": "边锋潜力·攻防俱佳"
+   }
+  ],
+  "Qatar": [
+   {
+    "name": "Almoez Ali",
+    "pos": "ST",
+    "club": "Al-Duhail",
+    "val": 3,
+    "tag": "禁区之王·亚洲杯先生"
+   },
+   {
+    "name": "Akram Afif",
+    "pos": "LW",
+    "club": "Al-Sadd",
+    "val": 8,
+    "tag": "两度亚洲先生·造梦左翼"
+   },
+   {
+    "name": "Meshaal Barsham",
+    "pos": "GK",
+    "club": "Al-Sadd",
+    "val": 4,
+    "tag": "门神·经验之柱"
+   }
+  ],
+  "Switzerland": [
+   {
+    "name": "Granit Xhaka",
+    "pos": "CM",
+    "club": "Sunderland",
+    "val": 17,
+    "tag": "铁血队魂·中场定海神针"
+   },
+   {
+    "name": "Breel Embolo",
+    "pos": "ST",
+    "club": "Stade Rennais",
+    "val": 15,
+    "tag": "禁区之豹·伤病铁闸"
+   },
+   {
+    "name": "Manuel Akanji",
+    "pos": "CB",
+    "club": "Inter Milan",
+    "val": 17,
+    "tag": "防线铁闸·少壮派防神"
+   }
+  ],
+  "Brazil": [
+   {
+    "name": "Vinícius Júnior",
+    "pos": "LW",
+    "club": "Real Madrid",
+    "val": 150,
+    "tag": "边路魔术师·黄金双翼"
+   },
+   {
+    "name": "Raphinha",
+    "pos": "RW",
+    "club": "Barcelona",
+    "val": 80,
+    "tag": "右路之王·传中大师"
+   },
+   {
+    "name": "Neymar",
+    "pos": "LW",
+    "club": "Santos",
+    "val": 10,
+    "tag": "金童·最后一舞"
+   }
+  ],
+  "Morocco": [
+   {
+    "name": "Achraf Hakimi",
+    "pos": "RB",
+    "club": "Paris Saint-Germain",
+    "val": 80,
+    "tag": "非洲先生·攻防俱佳"
+   },
+   {
+    "name": "Brahim Díaz",
+    "pos": "AM",
+    "club": "Real Madrid",
+    "val": 35,
+    "tag": "西班牙裔才子·进攻核心"
+   },
+   {
+    "name": "Sofyan Amrabat",
+    "pos": "DM",
+    "club": "Real Betis",
+    "val": 12,
+    "tag": "防线铁闸·中场屏障"
+   }
+  ],
+  "Haiti": [
+   {
+    "name": "Wilson Isidor",
+    "pos": "ST",
+    "club": "Sunderland",
+    "val": 12,
+    "tag": "禁区之星·法系射手"
+   },
+   {
+    "name": "Jean-Ricner Bellegarde",
+    "pos": "CM",
+    "club": "Wolverhampton Wanderers",
+    "val": 16,
+    "tag": "中场大脑·英超硬汉"
+   },
+   {
+    "name": "Jean-Kévin Duverne",
+    "pos": "CB",
+    "club": "AA Gent",
+    "val": 3,
+    "tag": "防线铁闸·防线支柱"
+   }
+  ],
+  "Scotland": [
+   {
+    "name": "Scott McTominay",
+    "pos": "CM",
+    "club": "Napoli",
+    "val": 45,
+    "tag": "中场大脑·意甲铁血"
+   },
+   {
+    "name": "Andy Robertson",
+    "pos": "LB",
+    "club": "Liverpool",
+    "val": 10,
+    "tag": "队长·红军铁血后卫"
+   },
+   {
+    "name": "Lawrence Shankland",
+    "pos": "ST",
+    "club": "Hearts",
+    "val": 3,
+    "tag": "禁区悍将·苏超前锋"
+   }
+  ],
+  "United States": [
+   {
+    "name": "Christian Pulisic",
+    "pos": "AM",
+    "club": "AC Milan",
+    "val": 65,
+    "tag": "进攻核心·传中大师"
+   },
+   {
+    "name": "Sergiño Dest",
+    "pos": "LW",
+    "club": "PSV Eindhoven",
+    "val": 35,
+    "tag": "速度型边锋·攻防俱佳"
+   },
+   {
+    "name": "Tyler Adams",
+    "pos": "CM",
+    "club": "Bournemouth",
+    "val": 25,
+    "tag": "队长·中场铁闸"
+   }
+  ],
+  "Paraguay": [
+   {
+    "name": "Julio Enciso",
+    "pos": "RW",
+    "club": "Brighton & Hove Albion",
+    "val": 28,
+    "tag": "速度型右锋·英超新星"
+   },
+   {
+    "name": "Diego Gómez",
+    "pos": "AM",
+    "club": "Cerro Porteño",
+    "val": 12,
+    "tag": "中场核心·组织高手"
+   },
+   {
+    "name": "Alfredo Talavera",
+    "pos": "GK",
+    "club": "Juárez FC",
+    "val": 5,
+    "tag": "门神·大赛先生"
+   }
+  ],
+  "Australia": [
+   {
+    "name": "Ajdin Hrustic",
+    "pos": "CM",
+    "club": "Hellas Verona",
+    "val": 12,
+    "tag": "中场大脑·组织者"
+   },
+   {
+    "name": "Craig Goodwin",
+    "pos": "LW",
+    "club": "Al-Shabab",
+    "val": 10,
+    "tag": "速度边锋·防守硬汉"
+   },
+   {
+    "name": "Mathew Ryan",
+    "pos": "GK",
+    "club": "AO Glentoran",
+    "val": 2,
+    "tag": "门神·职业经验丰富"
+   }
+  ],
+  "Turkey": [
+   {
+    "name": "Ozan Kabak",
+    "pos": "CB",
+    "club": "Schalke 04",
+    "val": 18,
+    "tag": "中卫铁血·防线支柱"
+   },
+   {
+    "name": "Kaan Ayhan",
+    "pos": "CB",
+    "club": "Galatasaray",
+    "val": 15,
+    "tag": "防线硬汉·位置感强"
+   },
+   {
+    "name": "Kerem Aktürkoglu",
+    "pos": "LW",
+    "club": "Galatasaray",
+    "val": 20,
+    "tag": "速度型边锋·进攻威胁"
+   }
+  ],
+  "Germany": [
+   {
+    "name": "Jamal Musiala",
+    "pos": "AM",
+    "club": "Bayern Munich",
+    "val": 110,
+    "tag": "天才少年·盘带大师"
+   },
+   {
+    "name": "Florian Wirtz",
+    "pos": "LW",
+    "club": "Bayer Leverkusen",
+    "val": 100,
+    "tag": "金童·边路爆点"
+   },
+   {
+    "name": "Manuel Neuer",
+    "pos": "GK",
+    "club": "Bayern Munich",
+    "val": 15,
+    "tag": "门神·后卫型门将"
+   }
+  ],
+  "Curaçao": [
+   {
+    "name": "Leandro Bacuna",
+    "pos": "CB",
+    "club": "Reading",
+    "val": 4,
+    "tag": "防线支柱·职业硬汉"
+   },
+   {
+    "name": "Rangelo Janga",
+    "pos": "ST",
+    "club": "Fiorentina",
+    "val": 8,
+    "tag": "进攻前锋·禁区之王"
+   },
+   {
+    "name": "Nick Olij",
+    "pos": "GK",
+    "club": "NEC Nijmegen",
+    "val": 2,
+    "tag": "门神·荷甲主力"
+   }
+  ],
+  "Ivory Coast": [
+   {
+    "name": "Amad Diallo",
+    "pos": "RW",
+    "club": "Manchester United",
+    "val": 50,
+    "tag": "金童·英超锋芒"
+   },
+   {
+    "name": "Yan Diomande",
+    "pos": "FW",
+    "club": "RB Leipzig",
+    "val": 90,
+    "tag": "黑马·德甲新星"
+   },
+   {
+    "name": "Franck Kessié",
+    "pos": "DM",
+    "club": "Al-Ahli",
+    "val": 8,
+    "tag": "队魂·防线铁闸"
+   }
+  ],
+  "Ecuador": [
+   {
+    "name": "Moisés Caicedo",
+    "pos": "CM",
+    "club": "Chelsea",
+    "val": 110,
+    "tag": "中场大脑·英超新贵"
+   },
+   {
+    "name": "Willian Pacho",
+    "pos": "CB",
+    "club": "PSG",
+    "val": 70,
+    "tag": "防线铁闸·欧冠得主"
+   },
+   {
+    "name": "Enner Valencia",
+    "pos": "ST",
+    "club": "Pachuca",
+    "val": 2,
+    "tag": "队长·王牌射手"
+   }
+  ],
+  "Netherlands": [
+   {
+    "name": "Frenkie de Jong",
+    "pos": "CM",
+    "club": "Barcelona",
+    "val": 43,
+    "tag": "中场大师·控球艺术"
+   },
+   {
+    "name": "Virgil van Dijk",
+    "pos": "CB",
+    "club": "Liverpool",
+    "val": 18,
+    "tag": "铁闸·防线屏障"
+   },
+   {
+    "name": "Memphis Depay",
+    "pos": "ST",
+    "club": "Corinthians",
+    "val": 7,
+    "tag": "射手王·职业救赎"
+   }
+  ],
+  "Japan": [
+   {
+    "name": "Takefusa Kubo",
+    "pos": "RW",
+    "club": "Real Sociedad",
+    "val": 20,
+    "tag": "日本之光·欧洲锋芒"
+   },
+   {
+    "name": "Wataru Endo",
+    "pos": "DM",
+    "club": "Liverpool",
+    "val": 4,
+    "tag": "队魂·中场铁血"
+   },
+   {
+    "name": "Ritsu Doan",
+    "pos": "RW",
+    "club": "Eintracht Frankfurt",
+    "val": 25,
+    "tag": "边路尖刀·德甲快手"
+   }
+  ],
+  "Sweden": [
+   {
+    "name": "Alexander Isak",
+    "pos": "ST",
+    "club": "Liverpool",
+    "val": 103,
+    "tag": "禁区之王·北欧之光"
+   },
+   {
+    "name": "Viktor Gyökeres",
+    "pos": "ST",
+    "club": "Arsenal",
+    "val": 70,
+    "tag": "神射手·英超新贵"
+   },
+   {
+    "name": "Lucas Bergvall",
+    "pos": "CM",
+    "club": "Tottenham",
+    "val": 35,
+    "tag": "中场新星·英超悍将"
+   }
+  ],
+  "Tunisia": [
+   {
+    "name": "Hannibal Mejbri",
+    "pos": "CM",
+    "club": "Burnley",
+    "val": 20,
+    "tag": "中场铁闸·英超硬汉"
+   },
+   {
+    "name": "Ellyes Skhiri",
+    "pos": "DM",
+    "club": "Eintracht Frankfurt",
+    "val": 6,
+    "tag": "队长·防线支柱"
+   },
+   {
+    "name": "Montassar Talbi",
+    "pos": "CB",
+    "club": "Lorient",
+    "val": 5,
+    "tag": "防线铁闸·老兵新传"
+   }
+  ],
+  "Belgium": [
+   {
+    "name": "Kevin De Bruyne",
+    "pos": "AM",
+    "club": "Napoli",
+    "val": 15,
+    "tag": "中场大脑·职业生涯谢幕"
+   },
+   {
+    "name": "Romelu Lukaku",
+    "pos": "ST",
+    "club": "Napoli",
+    "val": 11,
+    "tag": "禁区之王·复兴之路"
+   },
+   {
+    "name": "Thibaut Courtois",
+    "pos": "GK",
+    "club": "Real Madrid",
+    "val": 20,
+    "tag": "门神·黄金一代"
+   }
+  ],
+  "Spain": [
+   {
+    "name": "Lamine Yamal",
+    "pos": "RW",
+    "club": "Barcelona",
+    "val": 200,
+    "tag": "金童·边路爆点"
+   },
+   {
+    "name": "Rodri",
+    "pos": "DM",
+    "club": "Manchester City",
+    "val": 65,
+    "tag": "球场大脑·队魂"
+   },
+   {
+    "name": "Nico Williams",
+    "pos": "LW",
+    "club": "Athletic Bilbao",
+    "val": 60,
+    "tag": "闪电边锋·速度之王"
+   }
+  ],
+  "Egypt": [
+   {
+    "name": "Mohamed Salah",
+    "pos": "RW",
+    "club": "Liverpool",
+    "val": 22,
+    "tag": "埃及法老·队魂"
+   },
+   {
+    "name": "Omar Marmoush",
+    "pos": "ST",
+    "club": "Manchester City",
+    "val": 65,
+    "tag": "禁区之王·新锐之星"
+   },
+   {
+    "name": "Karim Hafez",
+    "pos": "CB",
+    "club": "Pyramids FC",
+    "val": 1,
+    "tag": "后防铁闸·稳健防线"
+   }
+  ],
+  "Iran": [
+   {
+    "name": "Mehdi Taremi",
+    "pos": "ST",
+    "club": "Olympiacos",
+    "val": 2,
+    "tag": "前锋老将·第三世界杯"
+   },
+   {
+    "name": "Alireza Jahanbakhsh",
+    "pos": "RW",
+    "club": "FCV Dender EH",
+    "val": 1,
+    "tag": "队长·边锋创造者"
+   }
+  ],
+  "New Zealand": [
+   {
+    "name": "Chris Wood",
+    "pos": "ST",
+    "club": "Nottingham Forest",
+    "val": 5,
+    "tag": "足坛老兵·历史先锋"
+   },
+   {
+    "name": "Tommy Smith",
+    "pos": "CB",
+    "club": "New Zealand",
+    "val": 1,
+    "tag": "防线铁闸·两度世界杯"
+   },
+   {
+    "name": "Max Crocombe",
+    "pos": "GK",
+    "club": "Auckland City",
+    "val": 1,
+    "tag": "门神·国家队支柱"
+   }
+  ],
+  "Cape Verde": [
+   {
+    "name": "Ryan Mendes",
+    "pos": "ST",
+    "club": "Iğdır FK",
+    "val": 1,
+    "tag": "队魂·首次世界杯"
+   },
+   {
+    "name": "Jamiro Monteiro",
+    "pos": "CM",
+    "club": "PEC Zwolle",
+    "val": 1,
+    "tag": "中场核心·创意源泉"
+   },
+   {
+    "name": "Logan Costa",
+    "pos": "CB",
+    "club": "Villarreal",
+    "val": 5,
+    "tag": "后防中坚·欧洲铁闸"
+   }
+  ],
+  "Saudi Arabia": [
+   {
+    "name": "Salem Al-Dawsari",
+    "pos": "LW",
+    "club": "Al-Hilal",
+    "val": 1,
+    "tag": "队长·进球英雄"
+   },
+   {
+    "name": "Saud Abdulhamid",
+    "pos": "RB",
+    "club": "RC Lens",
+    "val": 5,
+    "tag": "防线铁闸·欧洲边后"
+   },
+   {
+    "name": "Firas Al-Buraikan",
+    "pos": "ST",
+    "club": "Al-Ahli",
+    "val": 4,
+    "tag": "锋线核心·亚冠功臣"
+   }
+  ],
+  "Uruguay": [
+   {
+    "name": "Federico Valverde",
+    "pos": "CM",
+    "club": "Real Madrid",
+    "val": 111,
+    "tag": "中场大脑·欧冠王牌"
+   },
+   {
+    "name": "Darwin Nunez",
+    "pos": "ST",
+    "club": "Liverpool",
+    "val": 35,
+    "tag": "锋线尖刀·进攻引擎"
+   },
+   {
+    "name": "José María Giménez",
+    "pos": "CB",
+    "club": "Atlético Madrid",
+    "val": 13,
+    "tag": "防线铁闸·队长领袖"
+   }
+  ],
+  "France": [
+   {
+    "name": "Kylian Mbappé",
+    "pos": "ST",
+    "club": "Real Madrid",
+    "val": 180,
+    "tag": "金童·连冠之星"
+   },
+   {
+    "name": "Ousmane Dembélé",
+    "pos": "RW",
+    "club": "PSG",
+    "val": 100,
+    "tag": "边锋魔术师·速度之王"
+   },
+   {
+    "name": "Mike Maignan",
+    "pos": "GK",
+    "club": "AC Milan",
+    "val": 50,
+    "tag": "门神·防线铁闸"
+   }
+  ],
+  "Senegal": [
+   {
+    "name": "Sadio Mané",
+    "pos": "RW",
+    "club": "Al-Nassr",
+    "val": 10,
+    "tag": "传奇前锋·最后舞台"
+   },
+   {
+    "name": "Kalidou Koulibaly",
+    "pos": "CB",
+    "club": "Al-Hilal",
+    "val": 5,
+    "tag": "队长铁血·防线支柱"
+   },
+   {
+    "name": "Idrissa Gana Gueye",
+    "pos": "CM",
+    "club": "Everton",
+    "val": 2,
+    "tag": "中场硬度·经验之星"
+   }
+  ],
+  "Iraq": [
+   {
+    "name": "Aymen Hussein",
+    "pos": "ST",
+    "club": "Al-Karma",
+    "val": 1,
+    "tag": "国家英雄·进球机器"
+   },
+   {
+    "name": "Ali Al-Hamadi",
+    "pos": "ST",
+    "club": "Luton Town",
+    "val": 2,
+    "tag": "英超尖兵·破门先锋"
+   },
+   {
+    "name": "Amir Al Ammari",
+    "pos": "CM",
+    "club": "Al-Merrikh",
+    "val": 1,
+    "tag": "中场组织·核心枢纽"
+   }
+  ],
+  "Norway": [
+   {
+    "name": "Erling Haaland",
+    "pos": "ST",
+    "club": "Manchester City",
+    "val": 200,
+    "tag": "禁区之王·进球机器"
+   },
+   {
+    "name": "Martin Ødegaard",
+    "pos": "CM",
+    "club": "Arsenal",
+    "val": 76,
+    "tag": "队长·中场大脑"
+   },
+   {
+    "name": "Alexander Sørloth",
+    "pos": "ST",
+    "club": "Atlético Madrid",
+    "val": 22,
+    "tag": "锋线尖刀·进攻威胁"
+   }
+  ],
+  "Argentina": [
+   {
+    "name": "Lionel Messi",
+    "pos": "ST",
+    "club": "Inter Miami",
+    "val": 14,
+    "tag": "队魂·最后一舞"
+   },
+   {
+    "name": "Julián Álvarez",
+    "pos": "ST",
+    "club": "Atlético Madrid",
+    "val": 100,
+    "tag": "金童·进攻尖刀"
+   },
+   {
+    "name": "Alexis Mac Allister",
+    "pos": "CM",
+    "club": "Liverpool",
+    "val": 80,
+    "tag": "中场大师·传中高手"
+   }
+  ],
+  "Algeria": [
+   {
+    "name": "Riyad Mahrez",
+    "pos": "RW",
+    "club": "Al Ahli",
+    "val": 6,
+    "tag": "老将·领袖·传中大师"
+   },
+   {
+    "name": "Ibrahim Maza",
+    "pos": "CM",
+    "club": "Bayer Leverkusen",
+    "val": 45,
+    "tag": "新星·天才中场"
+   },
+   {
+    "name": "Aïssa Mandi",
+    "pos": "CB",
+    "club": "Lille",
+    "val": 1,
+    "tag": "铁血后卫·经验宗师"
+   }
+  ],
+  "Austria": [
+   {
+    "name": "David Alaba",
+    "pos": "CB",
+    "club": "Real Madrid",
+    "val": 3,
+    "tag": "名门后卫·职业典范"
+   },
+   {
+    "name": "Marcel Sabitzer",
+    "pos": "CM",
+    "club": "Borussia Dortmund",
+    "val": 6,
+    "tag": "中场铁闸·传中导师"
+   },
+   {
+    "name": "Marko Arnautović",
+    "pos": "ST",
+    "club": "Crvena Zvezda",
+    "val": 2,
+    "tag": "射手王·37岁宝刀"
+   }
+  ],
+  "Jordan": [
+   {
+    "name": "Mousa Al-Tamari",
+    "pos": "RW",
+    "club": "Rennes",
+    "val": 5,
+    "tag": "边锋新星·约旦梅西"
+   },
+   {
+    "name": "Ihsan Haddad",
+    "pos": "CB",
+    "club": "Al-Hussein",
+    "val": 1,
+    "tag": "老将队长·防线铁闸"
+   },
+   {
+    "name": "Noor Al-Rawabdeh",
+    "pos": "CM",
+    "club": "Selangor",
+    "val": 1,
+    "tag": "中场老将·组织核心"
+   }
+  ],
+  "Portugal": [
+   {
+    "name": "Cristiano Ronaldo",
+    "pos": "ST",
+    "club": "Al-Nassr",
+    "val": 8,
+    "tag": "传奇队长·六届世界杯"
+   },
+   {
+    "name": "Bruno Fernandes",
+    "pos": "AM",
+    "club": "Manchester United",
+    "val": 43,
+    "tag": "中场大师·传中之眼"
+   },
+   {
+    "name": "Vitinha",
+    "pos": "DM",
+    "club": "Paris Saint-Germain",
+    "val": 115,
+    "tag": "防线铁闸·传球大师"
+   }
+  ],
+  "DR Congo": [
+   {
+    "name": "Chancel Mbemba",
+    "pos": "CB",
+    "club": "Lille",
+    "val": 2,
+    "tag": "铁血队长·防线定海神针"
+   },
+   {
+    "name": "Cédric Bakambu",
+    "pos": "ST",
+    "club": "Real Betis",
+    "val": 1,
+    "tag": "锋线悍将·进攻箭头"
+   },
+   {
+    "name": "Yoann Wissa",
+    "pos": "ST",
+    "club": "Newcastle United",
+    "val": 25,
+    "tag": "英超先锋·进攻尖刀"
+   }
+  ],
+  "Uzbekistan": [
+   {
+    "name": "Abdukodir Khusanov",
+    "pos": "CB",
+    "club": "Manchester City",
+    "val": 50,
+    "tag": "门神·亚洲之星"
+   },
+   {
+    "name": "Eldor Shomurodov",
+    "pos": "ST",
+    "club": "Basaksehir FK",
+    "val": 7,
+    "tag": "队魂·进攻核心"
+   },
+   {
+    "name": "Abbosbek Fayzullaev",
+    "pos": "RW",
+    "club": "Basaksehir FK",
+    "val": 7,
+    "tag": "边锋爆点·年轻天才"
+   }
+  ],
+  "Colombia": [
+   {
+    "name": "Luis Diaz",
+    "pos": "LW",
+    "club": "Bayern Munich",
+    "val": 74,
+    "tag": "速度之王·顶级边锋"
+   },
+   {
+    "name": "James Rodriguez",
+    "pos": "AM",
+    "club": "Minnesota United",
+    "val": 2,
+    "tag": "队长·经验老将"
+   },
+   {
+    "name": "Richard Rios",
+    "pos": "CM",
+    "club": "Benfica",
+    "val": 35,
+    "tag": "中场铁闸·欧洲强队"
+   }
+  ],
+  "England": [
+   {
+    "name": "Harry Kane",
+    "pos": "ST",
+    "club": "Bayern Munich",
+    "val": 66,
+    "tag": "进球机器·队魂"
+   },
+   {
+    "name": "Jude Bellingham",
+    "pos": "AM",
+    "club": "Real Madrid",
+    "val": 130,
+    "tag": "金童·中场大师"
+   },
+   {
+    "name": "Bukayo Saka",
+    "pos": "RW",
+    "club": "Arsenal",
+    "val": 120,
+    "tag": "速度之星·阿森纳锋线"
+   }
+  ],
+  "Croatia": [
+   {
+    "name": "Luka Modric",
+    "pos": "CM",
+    "club": "AC Milan",
+    "val": 3,
+    "tag": "球王·传奇谢幕"
+   },
+   {
+    "name": "Josko Gvardiol",
+    "pos": "CB",
+    "club": "Manchester City",
+    "val": 70,
+    "tag": "防线铁闸·英超新星"
+   },
+   {
+    "name": "Mateo Kovacic",
+    "pos": "CM",
+    "club": "Manchester City",
+    "val": 12,
+    "tag": "中场硬度·防线屏障"
+   }
+  ],
+  "Ghana": [
+   {
+    "name": "Antoine Semenyo",
+    "pos": "RW",
+    "club": "Manchester City",
+    "val": 75,
+    "tag": "边锋尖刀·英超强者"
+   },
+   {
+    "name": "Mohammed Kudus",
+    "pos": "RW",
+    "club": "Tottenham Hotspur",
+    "val": 55,
+    "tag": "全能前锋·热刺之光"
+   },
+   {
+    "name": "Inaki Williams",
+    "pos": "RW",
+    "club": "Athletic Bilbao",
+    "val": 8,
+    "tag": "铁血边锋·老将风采"
+   }
+  ],
+  "Panama": [
+   {
+    "name": "Adalberto Carrasquilla",
+    "pos": "CM",
+    "club": "UNAM Pumas",
+    "val": 4,
+    "tag": "中场核心·创意大师"
+   },
+   {
+    "name": "Anibal Godoy",
+    "pos": "DM",
+    "club": "San Diego FC",
+    "val": 1,
+    "tag": "队长·职业典范"
+   },
+   {
+    "name": "Ismael Diaz",
+    "pos": "ST",
+    "club": "Leon",
+    "val": 2,
+    "tag": "禁区之王·进球先生"
+   }
+  ]
+ }
 }

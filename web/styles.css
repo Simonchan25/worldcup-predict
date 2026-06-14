@@ -363,6 +363,22 @@ main{flex:1;min-width:0;padding:24px 26px 48px}
 .star-tag{font-size:11px;color:var(--acc);margin-top:3px}
 .star-out{opacity:.5} .star-flag{color:var(--loss);font-size:10px;font-weight:700}
 
+/* AI 论战 panel */
+.vs-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-bottom:8px}
+.vs-box{text-align:center} .vs-champ{font-size:20px;font-weight:750} .vs-k{font-size:11.5px;color:var(--mut);margin-top:3px}
+.vs-mid{font-weight:800;color:var(--dim)}
+.cons-line{font-size:13px;color:var(--mut);padding:4px 0} .cons-line b{color:var(--tx)}
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px}
+.persona{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px}
+.pp-name{font-size:14px;font-weight:700;color:var(--acc);margin-bottom:8px}
+.pp-pick{font-size:15px} .pp-champ b{font-weight:750}
+.pp-sub{font-size:12px;color:var(--mut);margin-top:3px}
+.pp-top4{font-size:12px;color:var(--mut);margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.pp-team{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 7px;font-size:11.5px;color:var(--tx)}
+.pp-rat{font-size:12.5px;color:#cfd4dd;line-height:1.6;margin-top:9px;border-top:1px solid var(--line);padding-top:9px}
+.pp-deb{font-size:12px;color:var(--mut);line-height:1.55;margin-top:9px;background:var(--panel2);border-radius:8px;padding:9px 11px}
+.pp-reb{color:var(--loss);margin-top:5px}
+
 .foot{max-width:var(--maxw);margin:0 auto;padding:20px 26px 44px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:6px}
 @media(max-width:900px){.sidebar{display:none}.brand{min-width:auto}}
 .sec-block{margin-bottom:14px}

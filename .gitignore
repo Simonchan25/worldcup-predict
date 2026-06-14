@@ -5,3 +5,4 @@ __pycache__/
 outputs/refresh.log
 outputs/launchd.*.log
 .secrets.local.json
+downloads/

@@ -240,6 +240,8 @@ def main():
                 if (data.WC / "referees.json").exists() else None)
     squads = (json.loads((data.WC / "squads.json").read_text(encoding="utf-8"))
               if (data.WC / "squads.json").exists() else None)
+    ai_panel = (json.loads((data.WC / "ai_panel.json").read_text(encoding="utf-8"))
+                if (data.WC / "ai_panel.json").exists() else None)
     ctx = {
         "asof": str(today.date()),
         "n_sims": args.sims,
@@ -289,7 +291,8 @@ def main():
         calibration_ece=(backtest.ece(calibration) if calibration is not None else None),
         market_beat=market_beat, betting_backtest=betting_bt, value_bets=value_bets,
         injuries=injuries, methodology=methodology, live_odds=live_odds,
-        all_fixtures=all_pred, referees=referees, squads=squads, bracket=bracket, sources=sources)
+        all_fixtures=all_pred, referees=referees, squads=squads, ai_panel=ai_panel,
+        venues=(clim.venues if clim else None), bracket=bracket, sources=sources)
     web_dir = data.ROOT / "web"
     web_dir.mkdir(exist_ok=True)
     (web_dir / "data.js").write_text(
