@@ -1,0 +1,5 @@
+{
+  "platform": "bilibili",
+  "url": "https://www.bilibili.com/video/BV1LREe6uEhM/",
+  "error": "ERROR: [BiliBili] 1LREe6uEhM: Unable to download webpage: HTTP Error 412: Precondition Failed (caused by <HTTPError 412: Precondition Failed>)\n"
+}

@@ -1,0 +1,95 @@
+{
+  "_note": "Key players per team for the star-matchup / storyline layer (entertainment + individual-quality comparison). val = approximate Transfermarkt-style market value in €M (estimate, rounds to ~10s; legends carry low value but high 'icon' weight). This is a display/colour layer — the model's probabilities already fold squad value in via value_blend; key players are cross-referenced against injuries.json so doubtful stars are flagged. Coverage is the contenders + currently-playing sides; extend freely.",
+  "by_team": {
+    "Spain": [
+      {"name": "Lamine Yamal", "pos": "RW", "club": "Barcelona", "val": 200, "tag": "金童·边路爆点"},
+      {"name": "Pedri", "pos": "CM", "club": "Barcelona", "val": 140, "tag": "中场节拍器"},
+      {"name": "Rodri", "pos": "DM", "club": "Man City", "val": 120, "tag": "金球级后腰"}
+    ],
+    "France": [
+      {"name": "Kylian Mbappé", "pos": "ST", "club": "Real Madrid", "val": 180, "tag": "头号杀手"},
+      {"name": "Aurélien Tchouaméni", "pos": "DM", "club": "Real Madrid", "val": 90, "tag": "中场屏障"},
+      {"name": "William Saliba", "pos": "CB", "club": "Arsenal", "val": 80, "tag": "防线核心"}
+    ],
+    "England": [
+      {"name": "Jude Bellingham", "pos": "AM", "club": "Real Madrid", "val": 180, "tag": "全能中场"},
+      {"name": "Bukayo Saka", "pos": "RW", "club": "Arsenal", "val": 130, "tag": "边路发动机"},
+      {"name": "Harry Kane", "pos": "ST", "club": "Bayern", "val": 90, "tag": "队长·射手"}
+    ],
+    "Brazil": [
+      {"name": "Vinícius Júnior", "pos": "LW", "club": "Real Madrid", "val": 200, "tag": "突破手"},
+      {"name": "Rodrygo", "pos": "RW", "club": "Real Madrid", "val": 100, "tag": "关键先生"},
+      {"name": "Raphinha", "pos": "RW", "club": "Barcelona", "val": 90, "tag": "状态火热"}
+    ],
+    "Argentina": [
+      {"name": "Lionel Messi", "pos": "RW", "club": "Inter Miami", "val": 30, "tag": "队魂·最后一舞"},
+      {"name": "Lautaro Martínez", "pos": "ST", "club": "Inter", "val": 110, "tag": "锋线杀手"},
+      {"name": "Julián Álvarez", "pos": "ST", "club": "Atlético", "val": 100, "tag": "全能前锋"}
+    ],
+    "Portugal": [
+      {"name": "Cristiano Ronaldo", "pos": "ST", "club": "Al-Nassr", "val": 15, "tag": "传奇·最后一舞"},
+      {"name": "Bruno Fernandes", "pos": "AM", "club": "Man Utd", "val": 60, "tag": "中场指挥"},
+      {"name": "Rafael Leão", "pos": "LW", "club": "AC Milan", "val": 80, "tag": "边路爆点"}
+    ],
+    "Netherlands": [
+      {"name": "Virgil van Dijk", "pos": "CB", "club": "Liverpool", "val": 25, "tag": "后防领袖"},
+      {"name": "Cody Gakpo", "pos": "LW", "club": "Liverpool", "val": 75, "tag": "锋线多面手"},
+      {"name": "Xavi Simons", "pos": "AM", "club": "RB Leipzig", "val": 80, "tag": "创造力核心"}
+    ],
+    "Germany": [
+      {"name": "Jamal Musiala", "pos": "AM", "club": "Bayern", "val": 140, "tag": "盘带魔术师"},
+      {"name": "Florian Wirtz", "pos": "AM", "club": "Liverpool", "val": 140, "tag": "进攻大脑"},
+      {"name": "Joshua Kimmich", "pos": "DM", "club": "Bayern", "val": 50, "tag": "中场枢纽"}
+    ],
+    "Belgium": [
+      {"name": "Kevin De Bruyne", "pos": "AM", "club": "Napoli", "val": 30, "tag": "传球大师"},
+      {"name": "Jérémy Doku", "pos": "LW", "club": "Man City", "val": 80, "tag": "爆点突破"},
+      {"name": "Romelu Lukaku", "pos": "ST", "club": "Napoli", "val": 25, "tag": "支点中锋"}
+    ],
+    "Croatia": [
+      {"name": "Luka Modrić", "pos": "CM", "club": "AC Milan", "val": 5, "tag": "传奇中场"},
+      {"name": "Joško Gvardiol", "pos": "CB", "club": "Man City", "val": 75, "tag": "现代中卫"},
+      {"name": "Mateo Kovačić", "pos": "CM", "club": "Man City", "val": 30, "tag": "中场节拍"}
+    ],
+    "Norway": [
+      {"name": "Erling Haaland", "pos": "ST", "club": "Man City", "val": 180, "tag": "进球机器"},
+      {"name": "Martin Ødegaard", "pos": "AM", "club": "Arsenal", "val": 110, "tag": "队长·组织核心"},
+      {"name": "Alexander Sørloth", "pos": "ST", "club": "Atlético", "val": 35, "tag": "第二射手"}
+    ],
+    "United States": [
+      {"name": "Christian Pulisic", "pos": "RW", "club": "AC Milan", "val": 60, "tag": "队长·东道主旗帜"},
+      {"name": "Folarin Balogun", "pos": "ST", "club": "Monaco", "val": 40, "tag": "锋线尖刀"},
+      {"name": "Weston McKennie", "pos": "CM", "club": "Juventus", "val": 30, "tag": "中场发动机"}
+    ],
+    "Mexico": [
+      {"name": "Santiago Giménez", "pos": "ST", "club": "AC Milan", "val": 35, "tag": "锋线尖刀"},
+      {"name": "Edson Álvarez", "pos": "DM", "club": "West Ham", "val": 30, "tag": "中场屏障"},
+      {"name": "Hirving Lozano", "pos": "RW", "club": "San Diego", "val": 15, "tag": "边路速度"}
+    ],
+    "Morocco": [
+      {"name": "Achraf Hakimi", "pos": "RB", "club": "PSG", "val": 60, "tag": "进攻型边卫"},
+      {"name": "Brahim Díaz", "pos": "AM", "club": "Real Madrid", "val": 60, "tag": "创造力"},
+      {"name": "Youssef En-Nesyri", "pos": "ST", "club": "Fenerbahçe", "val": 30, "tag": "支点中锋"}
+    ],
+    "Uruguay": [
+      {"name": "Federico Valverde", "pos": "CM", "club": "Real Madrid", "val": 130, "tag": "全能中场"},
+      {"name": "Darwin Núñez", "pos": "ST", "club": "Al-Hilal", "val": 65, "tag": "冲击型前锋"},
+      {"name": "Ronald Araújo", "pos": "CB", "club": "Barcelona", "val": 60, "tag": "后防核心"}
+    ],
+    "Japan": [
+      {"name": "Kaoru Mitoma", "pos": "LW", "club": "Brighton", "val": 50, "tag": "盘带边锋"},
+      {"name": "Takefusa Kubo", "pos": "RW", "club": "Real Sociedad", "val": 60, "tag": "技术核心"},
+      {"name": "Wataru Endō", "pos": "DM", "club": "Liverpool", "val": 15, "tag": "中场队长"}
+    ],
+    "Colombia": [
+      {"name": "Luis Díaz", "pos": "LW", "club": "Bayern", "val": 80, "tag": "边路爆点"},
+      {"name": "James Rodríguez", "pos": "AM", "club": "Club León", "val": 8, "tag": "队长·组织核心"},
+      {"name": "Jhon Durán", "pos": "ST", "club": "Al-Nassr", "val": 55, "tag": "冲击前锋"}
+    ],
+    "Switzerland": [
+      {"name": "Granit Xhaka", "pos": "CM", "club": "Bayer Leverkusen", "val": 25, "tag": "队长·中场核心"},
+      {"name": "Dan Ndoye", "pos": "RW", "club": "Nott'm Forest", "val": 40, "tag": "边路速度"},
+      {"name": "Manuel Akanji", "pos": "CB", "club": "Man City", "val": 40, "tag": "后防核心"}
+    ]
+  }
+}

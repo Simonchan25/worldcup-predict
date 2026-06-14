@@ -4,8 +4,8 @@
     {
       "name": "wc-web",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "/Volumes/thunderbolt/ai/worldcup-predict/web"],
-      "port": 8765
+      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "/Volumes/thunderbolt/ai/worldcup-predict/web"],
+      "port": 8766
     }
   ]
 }

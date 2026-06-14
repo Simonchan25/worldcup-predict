@@ -48,7 +48,18 @@
     const stats = [r.y != null ? `黄 ${r.y}` : "", r.pen != null ? `点球 ${r.pen}/场` : ""].filter(Boolean).join(" · ");
     return `<div class="ref-line"><span class="ic">🧑‍⚖️</span><span>主裁 <b>${esc(r.referee)}</b>（${esc(r.nat || "")}）${stats ? "· " + stats : ""}${r.style ? "<br><span class='dim'>" + esc(r.style.slice(0, 90)) + "</span>" : ""}</span></div>`;
   }
-  const EVICON = { h2h: "🆚", h2h_last: "🕐", form: "📈", goals: "⚽", elo: "🎯", value: "💰", inj: "🩹", climate: "🌡️", market: "💱" };
+  const EVICON = { h2h: "🆚", h2h_last: "🕐", form: "📈", goals: "⚽", elo: "🎯", value: "💰", inj: "🩹", climate: "🌡️", market: "💱", squad: "🌟" };
+  function starSection(fx) {
+    const sm = fx.star_matchup || {}, sh = sm.home || [], sa = sm.away || [];
+    if (!sh.length && !sa.length) return "";
+    const story = fx.storyline ? `<div class="mm-story">${esc(fx.storyline)}</div>` : "";
+    const col = arr => arr.length ? arr.map(p => `<div class="star${p.doubtful ? " star-out" : ""}">
+        <div class="star-nm">${esc(p.name)}${p.doubtful ? ` <span class="star-flag">伤?</span>` : ""}</div>
+        <div class="star-meta">${esc(p.pos)} · ${esc(p.club)} · ≈€${p.val}M</div>
+        <div class="star-tag">${esc(p.tag)}</div></div>`).join("") : `<div class="dim" style="font-size:12px">核心球员数据补全中</div>`;
+    return `<div class="mm-sec">🌟 球星对位 · 看点</div>${story}
+      <div class="star-grid"><div class="star-col">${col(sh)}</div><div class="star-vs">VS</div><div class="star-col away">${col(sa)}</div></div>`;
+  }
   function evList(fx) {
     const e = fx.evidence || []; if (!e.length) return "";
     return `<details class="evidence"><summary>判断依据 · ${e.length} 条证据</summary><ul>` +
@@ -423,7 +434,7 @@
     const actual = sm && sm.actual
       ? `<div class="mm-actual">本场已结束 · 实际比分 <b>${esc(sm.actual)}</b>${sm.pred_hit != null ? ` · 模型方向 <span class="${sm.pred_hit ? "hit-y" : "hit-n"}">${sm.pred_hit ? "✓ 命中" : "✗ 未中"}</span>` : ""}</div>`
       : (fx.kickoff ? `<div class="mm-actual dim">开球 🕒 ${esc(koTime(fx.kickoff))}（你所在时区）</div>` : "");
-    $("#mm-body").innerHTML = actual + matchCard(fx)
+    $("#mm-body").innerHTML = actual + matchCard(fx) + starSection(fx)
       + `<div class="mm-sec">💰 赔率与买入 · 本场最优玩法</div><div class="sb-grid">${betSmartCard(fx)}</div>`;
     const mod = $("#match-modal"); mod.classList.add("open"); $("#mm-body").scrollTop = 0;
     document.body.style.overflow = "hidden";

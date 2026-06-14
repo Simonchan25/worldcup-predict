@@ -615,7 +615,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
                  fixtures, live, adv, market_outright, fixtures_market, fit, blend_info,
                  bt_summary, calibration, calibration_ece, market_beat, sources,
                  betting_backtest=None, value_bets=None, injuries=None, methodology=None,
-                 live_odds=None, all_fixtures=None, referees=None, bracket=None):
+                 live_odds=None, all_fixtures=None, referees=None, squads=None, bracket=None):
     advm = {r["team"]: r for r in adv.to_dict("records")}
     mkt_map = {}
     if market_outright is not None:
@@ -668,17 +668,45 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             live_map[(m["home"], m["away"])] = m
 
     inj_map = (injuries or {}).get("by_team", {}) if isinstance(injuries, dict) else {}
+    squad_map = (squads or {}).get("by_team", {}) if isinstance(squads, dict) else {}
+
+    def _stars(team):
+        inj_names = [i.get("player") or "" for i in (inj_map.get(team) or [])]
+        out = []
+        for p in (squad_map.get(team) or [])[:3]:
+            doubt = any(n and (p["name"] in n or n in p["name"]) for n in inj_names)
+            out.append({**p, "doubtful": doubt})
+        return out
+
+    def _storyline(H, A, sh, sa):
+        bits = []
+        for s in sh + sa:
+            if "最后一舞" in s.get("tag", "") or "传奇" in s.get("tag", ""):
+                bits.append(f"🎬 {s['name']} 的世界杯舞台")
+                break
+        if sh and sa:
+            bits.append(f"⭐ {sh[0]['name']} ⚔️ {sa[0]['name']}")
+        elif sh or sa:
+            bits.append(f"⭐ 看点 {(sh or sa)[0]['name']}")
+        host = H if H in HOSTS else (A if A in HOSTS else None)
+        if host:
+            bits.append(f"🏟️ 东道主 {host} 主场")
+        return " · ".join(bits[:2])
 
     def enrich(fx):
         """Full per-match record: probabilities, drivers + narrative, derived
-        markets, live-odds comparison and best plays — everything the
-        click-through detail view needs for one match."""
+        markets, live-odds comparison, best plays and the star/storyline layer —
+        everything the click-through detail view needs for one match."""
         H, A = fx["home"], fx["away"]
         mkt = fmkt.get((H, A))
         meta = match_factors(fx, values, form(H), form(A), mkt,
                              h2h=head_to_head(df, H, A, asof),
                              inj_h=inj_map.get(H), inj_a=inj_map.get(A))
         ocmp = odds_compare({**fx}, live_map.get((H, A)))
+        sh, sa = _stars(H), _stars(A)
+        if sh and sa:
+            meta.setdefault("evidence", []).append({"k": "squad", "t":
+                f"领衔球星：{H} {sh[0]['name']}（{sh[0]['tag']}）· {A} {sa[0]['name']}（{sa[0]['tag']}）"})
         return {
             "n": fx.get("n"), "date": fx["date"],
             "kickoff": fx.get("kickoff") if isinstance(fx.get("kickoff"), str) else None,
@@ -699,6 +727,7 @@ def build_bundle(*, asof, n_sims, df, groups, schedule, ratings_elo, ratings, va
             "score_breakdown": _score_breakdown(fx.get("markets")),
             "referee": (referees or {}).get("by_match", {}).get(f"{H}|{A}"),
             "climate": fx.get("climate"), "venue_city": fx.get("venue_city"),
+            "star_matchup": {"home": sh, "away": sa}, "storyline": _storyline(H, A, sh, sa),
         }
 
     fixtures_out = [enrich(fx) for fx in fixtures.to_dict("records")]
