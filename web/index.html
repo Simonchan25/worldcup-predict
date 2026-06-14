@@ -11,16 +11,19 @@
 
 <header class="topbar">
   <div class="brand">
-    <svg class="logo" viewBox="0 0 32 32" width="30" height="30" role="img" aria-label="World Cup 2026">
-      <defs><linearGradient id="wcg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#13c08a"/><stop offset="1" stop-color="#0b7a5c"/></linearGradient></defs>
-      <rect width="32" height="32" rx="9" fill="url(#wcg)"/>
-      <g transform="translate(16,13.5)" stroke="#fff" stroke-width="1.15" fill="none" opacity=".97" stroke-linejoin="round">
-        <circle r="6.4"/>
-        <polygon points="0,-2.6 2.5,-0.8 1.5,2.2 -1.5,2.2 -2.5,-0.8" fill="#fff" stroke="none"/>
-        <path d="M0,-6.4 0,-2.6 M-6.1,-2 -2.5,-0.8 M6.1,-2 2.5,-0.8 M-3.7,5.2 -1.5,2.2 M3.7,5.2 1.5,2.2"/>
+    <svg class="logo" viewBox="0 0 64 64" width="34" height="34" role="img" aria-label="World Cup 2026">
+      <g class="ball">
+        <circle cx="32" cy="32" r="29" fill="#f3f5f6" stroke="#1fc398" stroke-width="3.5"/>
+        <polygon points="32,19 41.5,26 37.8,37.2 26.2,37.2 22.5,26" fill="#15161d"/>
+        <g stroke="#474d60" stroke-width="2.2" fill="none" stroke-linecap="round">
+          <path d="M32 19 V7.5"/><path d="M41.5 26 L53 21.5"/><path d="M37.8 37.2 L45.5 49.5"/>
+          <path d="M26.2 37.2 L18.5 49.5"/><path d="M22.5 26 L11 21.5"/>
+        </g>
+        <g fill="#15161d">
+          <circle cx="32" cy="9" r="3.2"/><circle cx="54.5" cy="20.5" r="3.2"/>
+          <circle cx="46.5" cy="51.5" r="3.2"/><circle cx="17.5" cy="51.5" r="3.2"/><circle cx="9.5" cy="20.5" r="3.2"/>
+        </g>
       </g>
-      <text x="16" y="29.2" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="7.5" font-weight="800" fill="#fff" letter-spacing="1.2">26</text>
     </svg>
     <span class="brand-txt"><b>世界杯概率预测</b><small>World Cup Probability · 2026</small></span>
   </div>
