@@ -112,9 +112,9 @@
   "venue_city": "Philadelphia",
   "venue_country": "United States",
   "n": 9,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -125,9 +125,9 @@
   "venue_city": "Houston",
   "venue_country": "United States",
   "n": 10,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 7,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -138,9 +138,9 @@
   "venue_city": "Arlington",
   "venue_country": "United States",
   "n": 11,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 2,
+  "away_score": 2
  },
  {
   "stage": "group",
@@ -151,9 +151,9 @@
   "venue_city": "Guadalupe",
   "venue_country": "Mexico",
   "n": 12,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 5,
+  "away_score": 1
  },
  {
   "stage": "group",
