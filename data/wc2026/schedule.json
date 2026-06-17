@@ -216,9 +216,9 @@
   "venue_city": "East Rutherford",
   "venue_country": "United States",
   "n": 17,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 3,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -229,9 +229,9 @@
   "venue_city": "Foxborough",
   "venue_country": "United States",
   "n": 18,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 4
  },
  {
   "stage": "group",
@@ -242,9 +242,9 @@
   "venue_city": "Kansas City",
   "venue_country": "United States",
   "n": 19,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 3,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -255,9 +255,9 @@
   "venue_city": "Santa Clara",
   "venue_country": "United States",
   "n": 20,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 3,
+  "away_score": 1
  },
  {
   "stage": "group",
