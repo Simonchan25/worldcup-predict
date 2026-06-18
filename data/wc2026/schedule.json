@@ -268,9 +268,9 @@
   "venue_city": "Toronto",
   "venue_country": "Canada",
   "n": 21,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -281,9 +281,9 @@
   "venue_city": "Arlington",
   "venue_country": "United States",
   "n": 22,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 4,
+  "away_score": 2
  },
  {
   "stage": "group",
@@ -294,9 +294,9 @@
   "venue_city": "Houston",
   "venue_country": "United States",
   "n": 23,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -307,9 +307,9 @@
   "venue_city": "Mexico City",
   "venue_country": "Mexico",
   "n": 24,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 3
  },
  {
   "stage": "group",
