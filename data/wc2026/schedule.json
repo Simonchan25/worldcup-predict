@@ -320,9 +320,9 @@
   "venue_city": "Atlanta",
   "venue_country": "United States",
   "n": 25,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -333,9 +333,9 @@
   "venue_city": "Inglewood",
   "venue_country": "United States",
   "n": 26,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 4,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -346,9 +346,9 @@
   "venue_city": "Vancouver",
   "venue_country": "Canada",
   "n": 27,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 6,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -359,9 +359,9 @@
   "venue_city": "Zapopan",
   "venue_country": "Mexico",
   "n": 28,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 0
  },
  {
   "stage": "group",
