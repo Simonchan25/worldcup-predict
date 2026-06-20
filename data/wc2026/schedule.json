@@ -372,9 +372,9 @@
   "venue_city": "Philadelphia",
   "venue_country": "United States",
   "n": 29,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 3,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -385,9 +385,9 @@
   "venue_city": "Foxborough",
   "venue_country": "United States",
   "n": 30,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -398,9 +398,9 @@
   "venue_city": "Santa Clara",
   "venue_country": "United States",
   "n": 31,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -411,9 +411,9 @@
   "venue_city": "Seattle",
   "venue_country": "United States",
   "n": 32,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 2,
+  "away_score": 0
  },
  {
   "stage": "group",
