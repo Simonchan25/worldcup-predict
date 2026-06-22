@@ -476,9 +476,9 @@
   "venue_city": "Miami Gardens",
   "venue_country": "United States",
   "n": 37,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 2,
+  "away_score": 2
  },
  {
   "stage": "group",
@@ -489,9 +489,9 @@
   "venue_city": "Atlanta",
   "venue_country": "United States",
   "n": 38,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 4,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -502,9 +502,9 @@
   "venue_city": "Inglewood",
   "venue_country": "United States",
   "n": 39,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -515,9 +515,9 @@
   "venue_city": "Vancouver",
   "venue_country": "Canada",
   "n": 40,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 3
  },
  {
   "stage": "group",
