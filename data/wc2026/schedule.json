@@ -632,9 +632,9 @@
   "venue_city": "Miami Gardens",
   "venue_country": "United States",
   "n": 49,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 3
  },
  {
   "stage": "group",
@@ -645,9 +645,9 @@
   "venue_city": "Atlanta",
   "venue_country": "United States",
   "n": 50,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 4,
+  "away_score": 2
  },
  {
   "stage": "group",
@@ -658,9 +658,9 @@
   "venue_city": "Vancouver",
   "venue_country": "Canada",
   "n": 51,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 2,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -671,9 +671,9 @@
   "venue_city": "Seattle",
   "venue_country": "United States",
   "n": 52,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 3,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -684,9 +684,9 @@
   "venue_city": "Mexico City",
   "venue_country": "Mexico",
   "n": 53,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 3
  },
  {
   "stage": "group",
@@ -697,9 +697,9 @@
   "venue_city": "Guadalupe",
   "venue_country": "Mexico",
   "n": 54,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 0
  },
  {
   "stage": "group",
