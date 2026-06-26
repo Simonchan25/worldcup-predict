@@ -710,9 +710,9 @@
   "venue_city": "Philadelphia",
   "venue_country": "United States",
   "n": 55,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 2
  },
  {
   "stage": "group",
@@ -723,9 +723,9 @@
   "venue_city": "East Rutherford",
   "venue_country": "United States",
   "n": 56,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 2,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -736,9 +736,9 @@
   "venue_city": "Arlington",
   "venue_country": "United States",
   "n": 57,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -749,9 +749,9 @@
   "venue_city": "Kansas City",
   "venue_country": "United States",
   "n": 58,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 3
  },
  {
   "stage": "group",
@@ -762,9 +762,9 @@
   "venue_city": "Inglewood",
   "venue_country": "United States",
   "n": 59,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 3,
+  "away_score": 2
  },
  {
   "stage": "group",
@@ -775,9 +775,9 @@
   "venue_city": "Santa Clara",
   "venue_country": "United States",
   "n": 60,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 0
  },
  {
   "stage": "group",
