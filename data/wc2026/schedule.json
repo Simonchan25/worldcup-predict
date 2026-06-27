@@ -788,9 +788,9 @@
   "venue_city": "Foxborough",
   "venue_country": "United States",
   "n": 61,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 4
  },
  {
   "stage": "group",
@@ -801,9 +801,9 @@
   "venue_city": "Toronto",
   "venue_country": "Canada",
   "n": 62,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 5,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -814,9 +814,9 @@
   "venue_city": "Seattle",
   "venue_country": "United States",
   "n": 63,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 1
  },
  {
   "stage": "group",
@@ -827,9 +827,9 @@
   "venue_city": "Vancouver",
   "venue_country": "Canada",
   "n": 64,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 1,
+  "away_score": 5
  },
  {
   "stage": "group",
@@ -840,9 +840,9 @@
   "venue_city": "Houston",
   "venue_country": "United States",
   "n": 65,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 0
  },
  {
   "stage": "group",
@@ -853,9 +853,9 @@
   "venue_city": "Zapopan",
   "venue_country": "Mexico",
   "n": 66,
-  "status": "scheduled",
-  "home_score": null,
-  "away_score": null
+  "status": "played",
+  "home_score": 0,
+  "away_score": 1
  },
  {
   "stage": "group",
